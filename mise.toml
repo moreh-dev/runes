@@ -1,5 +1,11 @@
 [tasks.claude-install-skills]
-run = "claude plugin marketplace add moreh-dev/runes"
+run = [
+    "claude plugin marketplace add moreh-dev/runes",
+    "claude plugin install runes@moreh-dev",
+]
 
 [tasks.claude-update-skills]
-run = "claude plugin marketplace update runes"
+run = [
+    "claude plugin marketplace update moreh-dev",
+    "claude plugin update runes@moreh-dev",
+]
