@@ -1,0 +1,5 @@
+[tasks.claude-install-skills]
+run = "claude plugin marketplace add moreh-dev/runes"
+
+[tasks.claude-update-skills]
+run = "claude plugin marketplace update runes"
