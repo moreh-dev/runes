@@ -13,6 +13,18 @@ Start by understanding the current project context, then ask questions one at a 
 Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
+## Documentation Roles
+
+Three directories cooperate. This skill produces the file in `docs/specs/`:
+
+| Directory | Role | Author | Naming |
+| --- | --- | --- | --- |
+| `docs/PRDs/` | Business logic, what we want and why (long-lived) | Human-curated | `<topic>.md` |
+| `docs/specs/` | Implementation snapshot satisfying the PRD on a given day | This skill (with human approval) | `YYYY-MM-DD-<topic>.md` |
+| `docs/plans/` | Ordered task list executing an approved spec | `writing-plans` skill | `YYYY-MM-DD-<feature-name>.md` |
+
+Dates in spec and plan filenames use the `Asia/Seoul` timezone. Specs are dated snapshots — if a spec becomes stale, write a new dated file rather than editing the old one. PRDs are evergreen and human-curated; this skill does not generate them, it only reads them as input.
+
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
 Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
@@ -69,7 +81,7 @@ digraph brainstorming {
 
 **Understanding the idea:**
 
-- Check out the current project state first (files, docs, recent commits)
+- Check out the current project state first (files, docs, recent commits). In particular, scan `docs/PRDs/` for a long-lived PRD that constrains this work; if one exists, the spec must satisfy it.
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
