@@ -1,7 +1,7 @@
 # Agent Conventions
 
-This repository is a collection of Claude Code skills (custom sub-agents). When
-Claude works in this repo, or in any downstream repo that consumes these skills,
+This repository is a collection of agent skills (custom sub-agents). When an
+agent works in this repo, or in any downstream repo that consumes these skills,
 it MUST follow the conventions defined below.
 
 ## Three Documentation Directories
@@ -9,14 +9,14 @@ it MUST follow the conventions defined below.
 | Directory | Role | Author | Naming | Decay |
 | --- | --- | --- | --- | --- |
 | `docs/PRDs/` | Business logic only — what we want and why | Human-curated | `<topic>.md` | Evergreen — kept up to date |
-| `docs/specs/` | Business logic + implementation snapshot at a point in time | Claude (with human approval) | `YYYY-MM-DD-<topic>.md` | Decay allowed — write a new dated file when stale |
-| `docs/plans/` | Ordered task list for executing a piece of work | Claude | `YYYY-MM-DD-<feature-name>.md` | Decay allowed — archive after execution |
+| `docs/specs/` | Business logic + implementation snapshot at a point in time | Agent (with human approval) | `YYYY-MM-DD-<topic>.md` | Decay allowed — write a new dated file when stale |
+| `docs/plans/` | Ordered task list for executing a piece of work | Agent | `YYYY-MM-DD-<feature-name>.md` | Decay allowed — archive after execution |
 
 ## Workflow
 
 - **PRD** captures the target (long-lived, human).
-- **Spec** captures how we plan to satisfy the PRD on a given day (dated, Claude).
-- **Plan** breaks the approved spec into an ordered task list (dated, Claude).
+- **Spec** captures how we plan to satisfy the PRD on a given day (dated, agent).
+- **Plan** breaks the approved spec into an ordered task list (dated, agent).
 
 **Dates** in spec and plan filenames use the `Asia/Seoul` timezone.
 
