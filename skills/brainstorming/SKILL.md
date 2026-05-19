@@ -120,8 +120,8 @@ digraph brainstorming {
 
 **Documentation:**
 
-- **PRD** (`docs/PRDs/<topic>.md`) — evergreen contracts; propose changes during the conversation, commit only after user approval.
-- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — implementation snapshot; immutable once written.
+- **PRD** (`docs/PRDs/<topic>.md`) — evergreen contracts; propose changes during the conversation, commit only after user approval. No dated incidents or implementation snapshots here.
+- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — implementation snapshot (decisions, alternatives, trade-offs); immutable once written.
 
 Use elements-of-style:writing-clearly-and-concisely if available. Commit both. (User preferences override these paths.)
 
