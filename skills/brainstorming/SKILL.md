@@ -19,7 +19,7 @@ Three directories cooperate. This skill produces the file in `docs/specs/`:
 
 | Directory | Role | Author | Naming |
 | --- | --- | --- | --- |
-| `docs/PRDs/` | Business logic, what we want and why (long-lived) | Human-curated; this skill may propose changes for user approval | `<topic>.md` |
+| `docs/PRDs/` | Business logic, what we want and why (long-lived) | Human-curated; skill may propose for approval | `<topic>.md` |
 | `docs/specs/` | Implementation snapshot satisfying the PRD on a given day | This skill (with human approval) | `YYYY-MM-DD-<topic>.md` |
 | `docs/plans/` | Ordered task list executing an approved spec | `writing-plans` skill | `YYYY-MM-DD-<feature-name>.md` |
 
@@ -38,7 +38,7 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design docs** — split into long-lived intent and dated snapshot: long-lived business logic / architecture / contracts → `docs/PRDs/<topic>.md` (propose changes, user approves), dated implementation snapshot (decisions, alternatives, trade-offs) → `docs/specs/YYYY-MM-DD-<topic>.md`. Commit both.
+6. **Write design docs** — PRD (`docs/PRDs/<topic>.md`) and dated spec (`docs/specs/YYYY-MM-DD-<topic>.md`); commit both
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -120,14 +120,10 @@ digraph brainstorming {
 
 **Documentation:**
 
-Design content splits across two destinations:
+- **PRD** (`docs/PRDs/<topic>.md`) — evergreen contracts; propose changes during the conversation, commit only after user approval.
+- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — implementation snapshot; immutable once written.
 
-- **PRD** at `docs/PRDs/<topic>.md` — architecture, business logic, interface contracts. Evergreen and read-mostly. Do **not** write dated incidents, "previously X / now Y" history, or implementation snapshots here. This skill **proposes** PRD changes during the brainstorming conversation; only commit them after explicit user approval.
-- **Dated spec** at `docs/specs/YYYY-MM-DD-<topic>.md` — the implementation snapshot at this point in time: decisions taken, alternatives considered, trade-offs, plan summary. Accumulates; later specs do not edit earlier ones.
-
-(User preferences for PRD/spec locations override these defaults.)
-
-Use elements-of-style:writing-clearly-and-concisely skill if available. Commit both documents to git.
+Use elements-of-style:writing-clearly-and-concisely if available. Commit both. (User preferences override these paths.)
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
