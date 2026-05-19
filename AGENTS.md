@@ -12,6 +12,14 @@ it MUST follow the conventions defined below.
 | `docs/specs/` | Business logic + implementation snapshot at a point in time | Claude (with human approval) | `YYYY-MM-DD-<topic>.md` | Decay allowed — write a new dated file when stale |
 | `docs/plans/` | Ordered task list for executing a piece of work | Claude | `YYYY-MM-DD-<feature-name>.md` | Decay allowed — archive after execution |
 
+## Workflow
+
+- **PRD** captures the target (long-lived, human).
+- **Spec** captures how we plan to satisfy the PRD on a given day (dated, Claude).
+- **Plan** breaks the approved spec into an ordered task list (dated, Claude).
+
+**Dates** in spec and plan filenames use the `Asia/Seoul` timezone.
+
 ## Authoring Rules
 
 1. **Read-mostly PRDs.** Do not write implementation details (file paths,
