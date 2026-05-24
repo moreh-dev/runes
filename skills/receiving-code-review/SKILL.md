@@ -1,27 +1,42 @@
 ---
 name: receiving-code-review
-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+description: Use when walking the user through PR review feedback to understand it - explains each comment's intent, technical context, and reasoning for or against applying it in enough detail for the user to learn from. Pair with receiving-code-review-auto when the user wants execution instead of explanation.
 ---
 
 # Code Review Reception
 
 ## Overview
 
-Code review requires technical evaluation, not emotional performance.
+Walk the user through review feedback so they understand it — explain what the reviewer means, why it matters technically, and whether (and why) the suggestion should be applied. The goal is the user learns; the code change is a side effect.
 
-**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
+**Core principle:** Explain the reasoning. Verify before recommending. Technical correctness over social comfort.
+
+For end-to-end automation across all unresolved threads — without per-comment explanation — see `receiving-code-review-auto`.
+
+## Per-Comment Explanation
+
+For each review comment, cover (in this order, skipping sections that genuinely do not apply):
+
+1. **Intent** — what the reviewer is actually asking for, in plain terms. If the comment is terse or jargon-heavy, translate it.
+2. **Context** — *why* the reviewer raised this. The underlying concern: correctness bug, race, performance regression, security risk, API contract violation, convention drift, future maintenance hazard, etc. Name the category and explain the mechanism.
+3. **Verification** — what you checked in the codebase (file paths, call sites, related tests, git history). Cite specifics so the user can follow.
+4. **Recommendation** — apply / reject / clarify, with the technical reason. Spell out the alternative if you reject.
+5. **Tradeoffs** — what each path costs (extra code, perf hit, churn, lost flexibility) when there is a real tradeoff to weigh.
+
+Intent and Recommendation are mandatory; the others appear when they add signal. Length follows substance — a one-line typo fix does not need five sections.
 
 ## The Response Pattern
 
 ```
-WHEN receiving code review feedback:
+WHEN walking through code review feedback with the user:
 
-1. READ: Complete feedback without reacting
-2. UNDERSTAND: Restate requirement in own words (or ask)
-3. VERIFY: Check against codebase reality
-4. EVALUATE: Technically sound for THIS codebase?
-5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One item at a time, test each
+1. READ:      All comments before reacting
+2. UNDERSTAND: Restate the requirement in plain terms (or ask)
+3. VERIFY:    Check against codebase reality — cite paths/lines
+4. EVALUATE:  Technically sound for THIS codebase?
+5. EXPLAIN:   Per the Per-Comment Explanation template above
+6. RESPOND:   Technical acknowledgment or reasoned pushback
+7. IMPLEMENT: One item at a time, test each (only after the user agrees)
 ```
 
 ## Forbidden Responses
@@ -181,16 +196,40 @@ Reviewer: "Remove legacy code"
 ❌ "You're absolutely right! Let me remove that..."
 ```
 
-**Technical Verification (Good):**
+**Detailed Explanation, Reject (Good):**
 ```
 Reviewer: "Remove legacy code"
-✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
+
+✅ "Intent: drop the pre-iOS 13 branch in PhotoLoader.
+    Context: the reviewer assumes we already require iOS 13. That's a
+      correctness concern — dead code is risk surface and lies to readers.
+    Verification: Podfile platform :ios, '10.15' (Podfile:3); the legacy
+      branch uses PHImageManager.requestImageForAsset which is the only
+      API available pre-iOS 13 — newer requestImage(for:) requires 13+.
+    Recommendation: reject the removal. We still ship to 10.15, so the
+      legacy branch is load-bearing. But the reviewer landed on something
+      real: the legacy path uses the wrong bundle ID (PhotoLoader.legacy
+      instead of PhotoLoader). I'll fix that.
+    Tradeoff: keeping legacy costs ~30 lines and one extra code path. We
+      lose that the day product drops iOS 12 support — worth flagging then."
 ```
 
-**YAGNI (Good):**
+**Detailed Explanation, YAGNI Reject (Good):**
 ```
-Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
-✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
+Reviewer: "Implement proper metrics tracking — database persistence,
+date filters, CSV export"
+
+✅ "Intent: turn the stub /metrics endpoint into a real reporting feature.
+    Context: reviewer assumes the endpoint is in use. The underlying
+      concern is API quality — stubs that return fake data are a footgun.
+    Verification: ripgrep '/metrics' across the repo finds only the route
+      definition (routes.py:42) and one test that asserts it returns 200.
+      No frontend or external consumer.
+    Recommendation: reject *implementing* it; instead, remove the endpoint
+      and the test (YAGNI). The reviewer's quality concern is right, but
+      the cheaper fix is deletion, not implementation.
+    Tradeoff: if metrics show up on the roadmap soon, we'd rewrite this
+      from scratch anyway — keeping a stub buys us nothing."
 ```
 
 **Unclear Item (Good):**
@@ -204,27 +243,19 @@ You understand 1,2,3,6. Unclear on 4,5.
 
 When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
 
-### Agent Reviewer Threads (claude, codex, copilot)
+### Resolution Policy
 
-For inline review comments authored by agent reviewers such as `claude`, `codex`, or `copilot`, resolve the thread on GitHub after leaving the reply. Apply the same evaluation rules as other external feedback: verify, push back where wrong, and explain rejected suggestions in the reply before resolving.
+After replying:
+- **Agent-authored threads** (`claude`, `codex`, `copilot`, related `*[bot]` reviewers): resolve the thread, whether you applied or rejected the suggestion. Use the GraphQL `resolveReviewThread` mutation — REST has no equivalent.
+- **Human-authored threads**: leave open. The human decides when the conversation is done.
+- **Clarifying questions**: leave open regardless of author, until answered.
 
-```
-FOR EACH agent-reviewer thread on the PR:
-  1. Evaluate the comment (verify, YAGNI-check, push back if wrong)
-  2. Apply the fix OR write a reply explaining why it is rejected
-  3. Post the reply in the thread (not as a top-level comment)
-  4. Resolve the thread (GraphQL `resolveReviewThread` — REST has no equivalent)
-```
-
-**Do not resolve** when:
-- The reply asks the reviewer (or your human partner) a clarifying question
-- The fix is deferred to a follow-up PR/issue (link it in the reply, then leave open for tracking unless your human partner says otherwise)
-- Your human partner has indicated they want to review the thread themselves
+For end-to-end automation across every unresolved thread on a PR, see `receiving-code-review-auto`.
 
 ## The Bottom Line
 
-**External feedback = suggestions to evaluate, not orders to follow.**
+**External feedback = suggestions to evaluate and explain, not orders to follow.**
 
-Verify. Question. Then implement.
+The user is here to learn. For every comment, surface the intent, the technical context, what you checked, and the reason for your recommendation. The code change is the easy part; the explanation is the point.
 
 No performative agreement. Technical rigor always.
