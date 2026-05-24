@@ -1,6 +1,6 @@
 ---
 name: receiving-code-review
-description: Use when walking the user through PR review feedback to understand it - explains each comment's intent, technical context, and reasoning for or against applying it in enough detail for the user to learn from. Pair with receiving-code-review-auto when the user wants execution instead of explanation.
+description: Use when walking the user through PR review feedback to understand it - explains each comment's intent, technical context, and reasoning for or against applying it in enough detail for the user to learn from.
 ---
 
 # Code Review Reception
@@ -10,8 +10,6 @@ description: Use when walking the user through PR review feedback to understand 
 Walk the user through review feedback so they understand it — explain what the reviewer means, why it matters technically, and whether (and why) the suggestion should be applied. The goal is the user learns; the code change is a side effect.
 
 **Core principle:** Explain the reasoning. Verify before recommending. Technical correctness over social comfort.
-
-For end-to-end automation across all unresolved threads — without per-comment explanation — see `receiving-code-review-auto`.
 
 ## Per-Comment Explanation
 
@@ -249,8 +247,6 @@ After replying:
 - **Agent-authored threads** (`claude`, `codex`, `copilot`, related `*[bot]` reviewers): resolve the thread, whether you applied or rejected the suggestion. Use the GraphQL `resolveReviewThread` mutation — REST has no equivalent.
 - **Human-authored threads**: leave open. The human decides when the conversation is done.
 - **Clarifying questions**: leave open regardless of author, until answered.
-
-For end-to-end automation across every unresolved thread on a PR, see `receiving-code-review-auto`.
 
 ## The Bottom Line
 
