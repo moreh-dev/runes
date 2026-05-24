@@ -204,6 +204,23 @@ You understand 1,2,3,6. Unclear on 4,5.
 
 When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
 
+### Agent Reviewer Threads (claude, codex, copilot)
+
+For inline review comments authored by agent reviewers such as `claude`, `codex`, or `copilot`, resolve the thread on GitHub after leaving the reply. Apply the same evaluation rules as other external feedback: verify, push back where wrong, and explain rejected suggestions in the reply before resolving.
+
+```
+FOR EACH agent-reviewer thread on the PR:
+  1. Evaluate the comment (verify, YAGNI-check, push back if wrong)
+  2. Apply the fix OR write a reply explaining why it is rejected
+  3. Post the reply in the thread (not as a top-level comment)
+  4. Resolve the thread (GraphQL `resolveReviewThread` — REST has no equivalent)
+```
+
+**Do not resolve** when:
+- The reply asks the reviewer (or your human partner) a clarifying question
+- The fix is deferred to a follow-up PR/issue (link it in the reply, then leave open for tracking unless your human partner says otherwise)
+- Your human partner has indicated they want to review the thread themselves
+
 ## The Bottom Line
 
 **External feedback = suggestions to evaluate, not orders to follow.**
