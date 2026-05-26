@@ -1,40 +1,28 @@
 ---
 name: receiving-code-review
-description: Use when walking the user through PR review feedback to understand it - explains each comment's intent, technical context, and reasoning for or against applying it in enough detail for the user to learn from.
+description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation, and explains each comment's intent and reasoning before applying.
 ---
 
 # Code Review Reception
 
 ## Overview
 
-Walk the user through review feedback so they understand it — explain what the reviewer means, why it matters technically, and whether (and why) the suggestion should be applied. The goal is the user learns; the code change is a side effect.
+Code review requires technical evaluation, not emotional performance. For each comment, surface the intent, the technical context, and the reason behind your recommendation — so the user understands what's happening, not just the resulting code change.
 
-**Core principle:** Explain the reasoning. Verify before recommending. Technical correctness over social comfort.
-
-## Per-Comment Explanation
-
-For each review comment, cover (in this order, skipping sections that genuinely do not apply):
-
-1. **Intent** — what the reviewer is actually asking for, in plain terms. If the comment is terse or jargon-heavy, translate it.
-2. **Context** — *why* the reviewer raised this. The underlying concern: correctness bug, race, performance regression, security risk, API contract violation, convention drift, future maintenance hazard, etc. Name the category and explain the mechanism.
-3. **Verification** — what you checked in the codebase (file paths, call sites, related tests, git history). Cite specifics so the user can follow.
-4. **Recommendation** — apply / reject / clarify, with the technical reason. Spell out the alternative if you reject.
-5. **Tradeoffs** — what each path costs (extra code, perf hit, churn, lost flexibility) when there is a real tradeoff to weigh.
-
-Intent and Recommendation are mandatory; the others appear when they add signal. Length follows substance — a one-line typo fix does not need five sections.
+**Core principle:** Verify before implementing. Ask before assuming. Explain the reasoning. Technical correctness over social comfort.
 
 ## The Response Pattern
 
 ```
-WHEN walking through code review feedback with the user:
+WHEN receiving code review feedback:
 
-1. READ:      All comments before reacting
-2. UNDERSTAND: Restate the requirement in plain terms (or ask)
+1. READ:      Unresolved feedback without reacting
+2. UNDERSTAND: Restate requirement in own words (or ask)
 3. VERIFY:    Check against codebase reality — cite paths/lines
 4. EVALUATE:  Technically sound for THIS codebase?
-5. EXPLAIN:   Per the Per-Comment Explanation template above
+5. EXPLAIN:   Surface intent, context, and reasoning per the Per-Comment Explanation template
 6. RESPOND:   Technical acknowledgment or reasoned pushback
-7. IMPLEMENT: One item at a time, test each (only after the user agrees)
+7. IMPLEMENT: One item at a time, test each
 ```
 
 ## Forbidden Responses
@@ -109,6 +97,18 @@ IF reviewer suggests "implementing properly":
 ```
 
 **your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+
+## Per-Comment Explanation
+
+For each review comment, cover (in this order, skipping sections that genuinely do not apply):
+
+1. **Intent** — what the reviewer is actually asking for, in plain terms. If the comment is terse or jargon-heavy, translate it.
+2. **Context** — *why* the reviewer raised this. The underlying concern: correctness bug, race, performance regression, security risk, API contract violation, convention drift, future maintenance hazard, etc. Name the category and explain the mechanism.
+3. **Verification** — what you checked in the codebase (file paths, call sites, related tests, git history). Cite specifics so the user can follow.
+4. **Recommendation** — apply / reject / clarify, with the technical reason. Spell out the alternative if you reject.
+5. **Tradeoffs** — what each path costs (extra code, perf hit, churn, lost flexibility) when there is a real tradeoff to weigh.
+
+Intent and Recommendation are mandatory; the others appear when they add signal. Length follows substance — a one-line typo fix does not need five sections.
 
 ## Implementation Order
 
@@ -250,8 +250,8 @@ After replying:
 
 ## The Bottom Line
 
-**External feedback = suggestions to evaluate and explain, not orders to follow.**
+**External feedback = suggestions to evaluate, not orders to follow.**
 
-The user is here to learn. For every comment, surface the intent, the technical context, what you checked, and the reason for your recommendation. The code change is the easy part; the explanation is the point.
+Verify. Question. Explain. Then implement.
 
 No performative agreement. Technical rigor always.
