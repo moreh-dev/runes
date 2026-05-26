@@ -237,7 +237,7 @@ When replying to inline review comments on GitHub, reply in the comment thread (
 ### Resolution Policy
 
 After replying:
-- **Agent-authored threads** (`claude`, `codex`, `copilot`, related `*[bot]` reviewers): resolve the thread, whether you applied or rejected the suggestion. Use the GraphQL `resolveReviewThread` mutation — REST has no equivalent.
+- **Agent-authored threads** — match when `user.type == "Bot"` and lowercased `user.login` contains `claude`, `codex`, or `copilot`, OR `login` matches `*[bot]`. Covers `Copilot` (REST) and `copilot-pull-request-reviewer` (GraphQL) plus conventional `*[bot]` accounts. Resolve the thread whether you applied or rejected the suggestion; use the GraphQL `resolveReviewThread` mutation — REST has no equivalent.
 - **Human-authored threads**: leave open. The human decides when the conversation is done.
 - **Clarifying questions**: leave open regardless of author, until answered.
 
