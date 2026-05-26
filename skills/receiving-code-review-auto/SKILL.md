@@ -18,12 +18,7 @@ Don't ask "should I apply this?" or "should I post the reply?" — decide using 
 Not covered in the principles skill because they apply only end-to-end:
 
 - **Precheck:** working tree must be clean — escalate if dirty.
-- **Commit:** one commit per applied thread, made immediately after the change. Conventional Commits, single scope, with a footer:
-
-  ```
-  Addresses-Review: <comment-permalink>
-  ```
-
+- **Commit:** one commit per applied thread, made immediately after the change. Conventional Commits, single scope. Pick the type by change kind — `fix` (bug), `refactor` (cleanup), `docs` (docs-only), `test` (test changes), `style` (formatting-only). Scope is the top-level directory of the primary modified file (e.g., `skills`, `cmd`, `api`).
 - **Push:** one push after the full loop. Never force-push.
 
 ### When To Stop (Escalate)
