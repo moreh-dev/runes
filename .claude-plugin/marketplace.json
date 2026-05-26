@@ -4,12 +4,15 @@
 	"owner": {
 		"name": "Moreh"
 	},
+	"metadata": {
+		"pluginRoot": "./plugins"
+	},
 	"plugins": [
 		{
 			"name": "runes",
 			"description": "Moreh skills library for Claude Code",
 			"version": "0.1.0",
-			"source": "./",
+			"source": "./plugins/runes",
 			"author": {
 				"name": "Moreh"
 			}
