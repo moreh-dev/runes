@@ -1,27 +1,28 @@
 ---
 name: receiving-code-review
-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+description: Use when walking the user through PR review feedback comment-by-comment before deciding what to apply.
 ---
 
 # Code Review Reception
 
 ## Overview
 
-Code review requires technical evaluation, not emotional performance.
+Code review requires technical evaluation, not emotional performance. For each comment, surface the intent, the technical context, and the reason behind your recommendation — so the user understands what's happening, not just the resulting code change.
 
-**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
+**Core principle:** Verify before implementing. Ask before assuming. Explain the reasoning. Technical correctness over social comfort.
 
 ## The Response Pattern
 
 ```
 WHEN receiving code review feedback:
 
-1. READ: Complete feedback without reacting
+1. READ:      Unresolved feedback without reacting
 2. UNDERSTAND: Restate requirement in own words (or ask)
-3. VERIFY: Check against codebase reality
-4. EVALUATE: Technically sound for THIS codebase?
-5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One item at a time, test each
+3. VERIFY:    Check against codebase reality — cite paths/lines
+4. EVALUATE:  Technically sound for THIS codebase?
+5. EXPLAIN:   Surface intent, context, and reasoning per the Per-Comment Explanation template
+6. RESPOND:   Technical acknowledgment or reasoned pushback
+7. IMPLEMENT: One item at a time, test each
 ```
 
 ## Forbidden Responses
@@ -49,7 +50,7 @@ WHY: Items may be related. Partial understanding = wrong implementation.
 
 **Example:**
 ```
-your human partner: "Fix 1-6"
+user: "Fix 1-6"
 You understand 1,2,3,6. Unclear on 4,5.
 
 ❌ WRONG: Implement 1,2,3,6 now, ask about 4,5 later
@@ -58,7 +59,7 @@ You understand 1,2,3,6. Unclear on 4,5.
 
 ## Source-Specific Handling
 
-### From your human partner
+### From the user
 - **Trusted** - implement after understanding
 - **Still ask** if scope unclear
 - **No performative agreement**
@@ -79,11 +80,11 @@ IF suggestion seems wrong:
 IF can't easily verify:
   Say so: "I can't verify this without [X]. Should I [investigate/ask/proceed]?"
 
-IF conflicts with your human partner's prior decisions:
-  Stop and discuss with your human partner first
+IF conflicts with the user's prior decisions:
+  Stop and discuss with the user first
 ```
 
-**your human partner's rule:** "External feedback - be skeptical, but check carefully"
+**The user's rule:** "External feedback - be skeptical, but check carefully"
 
 ## YAGNI Check for "Professional" Features
 
@@ -95,7 +96,19 @@ IF reviewer suggests "implementing properly":
   IF used: Then implement properly
 ```
 
-**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+**The user's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+
+## Per-Comment Explanation
+
+For each review comment, cover (in this order, skipping sections that genuinely do not apply):
+
+1. **Intent** — what the reviewer is actually asking for, in plain terms. If the comment is terse or jargon-heavy, translate it.
+2. **Context** — *why* the reviewer raised this. The underlying concern: correctness bug, race, performance regression, security risk, API contract violation, convention drift, future maintenance hazard, etc. Name the category and explain the mechanism.
+3. **Verification** — what you checked in the codebase (file paths, call sites, related tests, git history). Cite specifics so the user can follow.
+4. **Recommendation** — apply / reject / clarify, with the technical reason. Spell out the alternative if you reject.
+5. **Tradeoffs** — what each path costs (extra code, perf hit, churn, lost flexibility) when there is a real tradeoff to weigh.
+
+Intent and Recommendation are mandatory in most cases; the others appear when they add signal. Length follows substance — a one-line typo fix or a single-sentence clarification request can drop the template structure entirely. Rule of thumb: if the only honest content of Intent and Recommendation would be a one-line echo of the comment itself, skip the structure.
 
 ## Implementation Order
 
@@ -118,13 +131,13 @@ Push back when:
 - Violates YAGNI (unused feature)
 - Technically incorrect for this stack
 - Legacy/compatibility reasons exist
-- Conflicts with your human partner's architectural decisions
+- Conflicts with the user's architectural decisions
 
 **How to push back:**
 - Use technical reasoning, not defensiveness
 - Ask specific questions
 - Reference working tests/code
-- Involve your human partner if architectural
+- Involve the user if architectural
 
 **Signal if uncomfortable pushing back out loud:** "Strange things are afoot at the Circle K"
 
@@ -181,33 +194,57 @@ Reviewer: "Remove legacy code"
 ❌ "You're absolutely right! Let me remove that..."
 ```
 
-**Technical Verification (Good):**
+**Detailed Explanation, Reject (Good):**
 ```
 Reviewer: "Remove legacy code"
-✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
+
+✅ "Intent: drop the pre-iOS 13 branch in PhotoLoader.
+    Context: the reviewer assumes we already require iOS 13. That's a
+      correctness concern — dead code is risk surface and lies to readers.
+    Verification: Podfile platform :ios, '10.15' (Podfile:3); the legacy
+      branch uses PHImageManager.requestImageForAsset which is the only
+      API available pre-iOS 13 — newer requestImage(for:) requires 13+.
+    Recommendation: reject the removal. We still ship to 10.15, so the
+      legacy branch is load-bearing. But the reviewer landed on something
+      real: the legacy path uses the wrong bundle ID (PhotoLoader.legacy
+      instead of PhotoLoader). I'll fix that.
+    Tradeoff: keeping legacy costs ~30 lines and one extra code path. We
+      lose that the day product drops iOS 12 support — worth flagging then."
 ```
 
-**YAGNI (Good):**
+**Detailed Explanation, YAGNI Reject (Good):**
 ```
-Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
-✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
-```
+Reviewer: "Implement proper metrics tracking — database persistence,
+date filters, CSV export"
 
-**Unclear Item (Good):**
-```
-your human partner: "Fix items 1-6"
-You understand 1,2,3,6. Unclear on 4,5.
-✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
+✅ "Intent: turn the stub /metrics endpoint into a real reporting feature.
+    Context: reviewer assumes the endpoint is in use. The underlying
+      concern is API quality — stubs that return fake data are a footgun.
+    Verification: ripgrep '/metrics' across the repo finds only the route
+      definition (routes.py:42) and one test that asserts it returns 200.
+      No frontend or external consumer.
+    Recommendation: reject *implementing* it; instead, remove the endpoint
+      and the test (YAGNI). The reviewer's quality concern is right, but
+      the cheaper fix is deletion, not implementation.
+    Tradeoff: if metrics show up on the roadmap soon, we'd rewrite this
+      from scratch anyway — keeping a stub buys us nothing."
 ```
 
 ## GitHub Thread Replies
 
 When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
 
+### Resolution Policy
+
+After replying:
+- **Agent-authored threads** — match when `user.type == "Bot"` and lowercased `user.login` contains `claude`, `codex`, or `copilot`, OR `login` matches `*[bot]`. Covers `Copilot` (REST) and `copilot-pull-request-reviewer` (GraphQL) plus conventional `*[bot]` accounts. Resolve the thread whether you applied or rejected the suggestion; use the GraphQL `resolveReviewThread` mutation — REST has no equivalent.
+- **Human-authored threads**: leave open. The human decides when the conversation is done.
+- **Clarifying questions**: leave open regardless of author, until answered.
+
 ## The Bottom Line
 
 **External feedback = suggestions to evaluate, not orders to follow.**
 
-Verify. Question. Then implement.
+Verify. Question. Explain. Then implement.
 
 No performative agreement. Technical rigor always.
