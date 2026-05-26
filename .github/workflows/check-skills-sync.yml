@@ -1,10 +1,13 @@
 name: Check skills sync
 
+permissions:
+  contents: read
+
 on:
   pull_request:
-  push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   check-skills-sync:
