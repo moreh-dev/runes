@@ -13,10 +13,6 @@ Same evaluation, reply, and resolution rules as `receiving-code-review`. The onl
 
 Don't ask "should I apply this?" or "should I post the reply?" — decide using the principles skill's evaluation rules and execute.
 
-### Author classification fail-safe
-
-When unsure whether a reviewer login is an agent (`claude`, `codex`, `copilot`, `*[bot]`), treat as human. Resolving a human's thread is harder to undo than leaving a bot's thread open.
-
 ### Execution mechanics
 
 Not covered in the principles skill because they apply only end-to-end:
