@@ -25,7 +25,7 @@ If you've already posted such a comment, delete it: `gh api -X DELETE repos/{own
 
 ### Wait for the new review with polling, not blind sleep
 
-Capture the bot's current review count, *then* request the review, *then* poll until the count increments. Run the polling loop via Claude Code's `Monitor` tool (or equivalent in your harness) so the next round resumes as soon as the new review lands:
+Capture the bot's current review count, *then* request the review, *then* poll until the count increments. Use a polling loop (in Claude Code: run via the `Monitor` tool; in any harness: a backgrounded shell `until` loop) so the next round resumes as soon as the new review lands:
 
 ```bash
 COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
@@ -33,14 +33,19 @@ COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | cont
 start=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
   --jq "[.[] | $COPILOT_BOT] | length")
 gh pr edit {PR} --add-reviewer @copilot
-until cur=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
-  --jq "[.[] | $COPILOT_BOT] | length"); \
-  [ "${cur:-0}" -gt "${start:-0}" ]; do sleep 30; done
+for _ in $(seq 1 40); do  # cap ~20 minutes at sleep 30
+  cur=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
+    --jq "[.[] | $COPILOT_BOT] | length")
+  [ "${cur:-0}" -gt "${start:-0}" ] && break
+  sleep 30
+done
 ```
+
+The `COPILOT_BOT` jq predicate is defined once and reused by the fetch block below — keep both blocks in the same shell context, or inline the predicate.
 
 The login matcher mirrors the base `receiving-code-review` rule: REST sometimes returns `Copilot`, GraphQL returns `copilot-pull-request-reviewer[bot]`, and the `type == "Bot"` + login-contains-`copilot` predicate covers both without committing to either spelling.
 
-Typical latency 1–5 minutes; cap at ~15–20 minutes (≈30–40 polls at `sleep 30`). If no review appears within the cap, halt the loop and report to the user (bot did not respond; suggest a manual `gh pr edit --add-reviewer @copilot` retry or skipping the round) — this is the base auto skill's "unrecognized error" path.
+If the cap elapses without the count incrementing, halt the loop and report to the user (bot did not respond; suggest a manual `gh pr edit --add-reviewer @copilot` retry or skipping the round) — this is the base auto skill's "unrecognized error" path.
 
 ### Fetch the new review's body and inline comments
 
@@ -68,7 +73,7 @@ The 40-character commit SHA on its own line auto-links to the commit on GitHub. 
 Not applied: <technical reason with concrete evidence>
 ```
 
-Reuse the same SHA across multiple accept replies when one commit resolves several threads.
+Reuse the same SHA across multiple accept replies when one commit resolves several threads (e.g., two comments on adjacent lines fixed by the same edit — consistent with the base auto skill's commit-per-thread rule).
 
 **Do not pad a push-back with a "neat" SHA from a recent commit.** The reader follows the link expecting *the fix* and lands on an unrelated commit — that is a misleading signal dressed as a tidy one. The structural difference (SHA vs no SHA) correctly signals the semantic difference (commit vs no commit). Form follows substance.
 
@@ -102,7 +107,7 @@ These thoughts mean you're about to violate a delta. Reset.
 - "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
 - "I addressed every comment Copilot posted, we're done" → the new commits haven't been seen
 - "It's the third round, surely there's nothing left" → the *feeling* of completion is not the termination condition
-- "I'll just `sleep 600` and check back" → poll with `Monitor` + `until`; the review may land in 1 minute or 15
+- "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15
 
 ## Common Mistakes
 
@@ -111,5 +116,5 @@ These thoughts mean you're about to violate a delta. Reset.
 | Triggering via `/review` or `@copilot review` PR comment | Bot doesn't run; PR collects noise comments | Use `gh pr edit --add-reviewer @copilot` |
 | Including a SHA in a push-back reply | Reviewer clicks a misleading link | Omit the SHA on push-backs; the structural difference is the point |
 | Stopping after one round because "all comments addressed" | New commits ship unreviewed | Re-request until Copilot reports no new comments, or zero accepts this round |
-| Blind `sleep N` while waiting | Either wastes time or returns before the review lands | Poll the reviews API with `Monitor` + `until` |
+| Blind `sleep N` while waiting | Either wastes time or returns before the review lands | Poll the reviews API in a bounded `until`/`for` loop |
 | Re-running `--add-reviewer` mid-round before replying/resolving | Two reviews stack; thread state gets confusing | Finish the round (commit, reply, resolve, push) before re-requesting |
