@@ -25,23 +25,28 @@ If you've already posted such a comment, delete it: `gh api -X DELETE repos/{own
 
 ### Wait for the new review with polling, not blind sleep
 
-Right after `gh pr edit ... --add-reviewer @copilot`, poll the reviews API until the bot's review count increments. Run the loop via the `Monitor` tool so the next round resumes as soon as the new review lands:
+Capture the bot's current review count, *then* request the review, *then* poll until the count increments. Run the polling loop via Claude Code's `Monitor` tool (or equivalent in your harness) so the next round resumes as soon as the new review lands:
 
 ```bash
+COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
+
 start=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | length')
+  --jq "[.[] | $COPILOT_BOT] | length")
+gh pr edit {PR} --add-reviewer @copilot
 until cur=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | length'); \
-  [ "$cur" -gt "$start" ]; do sleep 30; done
+  --jq "[.[] | $COPILOT_BOT] | length"); \
+  [ "${cur:-0}" -gt "${start:-0}" ]; do sleep 30; done
 ```
 
-Typical latency 1–5 minutes; cap at ~15–20. If no review appears within the cap, escalate per the base auto skill.
+The login matcher mirrors the base `receiving-code-review` rule: REST sometimes returns `Copilot`, GraphQL returns `copilot-pull-request-reviewer[bot]`, and the `type == "Bot"` + login-contains-`copilot` predicate covers both without committing to either spelling.
+
+Typical latency 1–5 minutes; cap at ~15–20 minutes (≈30–40 polls at `sleep 30`). If no review appears within the cap, escalate per the base auto skill.
 
 ### Fetch the new review's body and inline comments
 
 ```bash
 LATEST_ID=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | sort_by(.submitted_at) | last | .id')
+  --jq "[.[] | $COPILOT_BOT] | sort_by(.submitted_at) | last | .id")
 gh api repos/{owner}/{repo}/pulls/{PR}/comments \
   --jq ".[] | select(.pull_request_review_id == $LATEST_ID) | {id, path, line, body}"
 ```
@@ -72,7 +77,7 @@ Reuse the same SHA across multiple accept replies when one commit resolves sever
 Each round, after the base auto cycle finishes (replies posted, threads resolved, push completed):
 
 - **Any fix pushed this round** → re-request review (`gh pr edit <PR> --add-reviewer @copilot`) and return to "Wait for the new review". The bot has not yet seen the new commits.
-- **Zero fixes pushed this round** (every comment pushed back) → terminate. Re-requesting would not produce new comments on unchanged code.
+- **Zero fixes pushed this round** (every comment pushed back) → terminate, *after* all push-back replies are posted and threads resolved per the base auto cycle. Re-requesting would not produce new comments on unchanged code.
 - **Review body says "generated no new comments"** → terminate immediately.
 
 Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and has nothing new to say". The commits you just pushed are themselves unreviewed diff; self-review of code you wrote 20 minutes ago is famously poor, which is the entire reason a second reviewer was requested. The pull toward "done" gets stronger each round. The termination condition is **observed Copilot state**, not your subjective sense of completion.
@@ -88,10 +93,6 @@ The base skill's verify-before-implement rule applies; Copilot specifically gets
 | Convention ignorance | "Use the standard fmt" | Compare against project convention in AGENTS.md / CLAUDE.md |
 | Already-fixed | The fix landed in a prior round | `git log -p <file>` |
 | Behavioral-bug claim | "Breaks under scenario X" | Load `systematic-debugging` — start at Phase 1 (root cause), not at acceptance |
-
-## Resolving Copilot threads
-
-The base `receiving-code-review` resolution policy applies: Copilot is an agent author (`copilot-pull-request-reviewer[bot]`), so threads are resolved after reply via the GraphQL `resolveReviewThread` mutation — whether the comment was accepted or pushed back. Resolving a push-back signals "already discussed".
 
 ## Red Flags — STOP
 
