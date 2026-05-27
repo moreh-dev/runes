@@ -86,6 +86,20 @@ IF conflicts with the user's prior decisions:
 
 **The user's rule:** "External feedback - be skeptical, but check carefully"
 
+## Common false-positive categories from external reviewers
+
+These patterns recur often enough across external reviewers (human contractors, bots, AI reviewers) to be worth verifying *first* before treating any of them as correct:
+
+| Category | Example claim | Verification |
+|---|---|---|
+| Compilation misjudgment | "This code won't compile" / "Type error on line X" | Actually run the build/typechecker |
+| Phantom symbol | "Function X is missing" / "Variable Y is undefined" | `grep` / `Read` the file(s) |
+| Convention ignorance | "Use the standard fmt" / "Should be camelCase" | Compare against project AGENTS.md / CLAUDE.md / style guide |
+| Already-fixed | The comment targets a stale state | `git log -p <file>` |
+| Behavioral-bug claim | "Breaks under scenario X" | Apply `systematic-debugging` — Phase 1 root cause, not symptom acceptance |
+
+These overlap with the "verify before implementing" rule above; the table is a concrete checklist of the patterns where verification most often disproves the claim.
+
 ## YAGNI Check for "Professional" Features
 
 ```

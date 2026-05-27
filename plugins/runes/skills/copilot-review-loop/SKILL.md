@@ -5,7 +5,7 @@ description: Use when the user asks to run, automate, or iterate on GitHub Copil
 
 # Copilot Review Loop
 
-**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-comment verify→fix→reply→resolve cycle (including reply format, commit-per-thread, escalation, final report). The delta below covers only Copilot-specific mechanics: trigger, wait, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
+**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-comment verify→fix→reply→resolve cycle (including the verify-before-implement rule and false-positive categories inherited via `receiving-code-review`). The delta below covers only Copilot-specific mechanics: trigger, wait, reply format, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
 
 ## Trigger via reviewer, never via comment
 
@@ -44,33 +44,39 @@ gh api repos/{owner}/{repo}/pulls/{PR}/comments \
 
 The matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`).
 
-If the review body contains "generated no new comments", terminate immediately. (GitHub may reword this; the zero-accepts fallback below still bounds the loop.)
+## Reply format — SHA only when there is a SHA
+
+The 40-character commit SHA on its own line auto-links to the commit on GitHub. The format is **load-bearing**: the reader clicks the SHA to see *the fix*.
+
+**Accept (a commit exists):**
+```
+<40-char commit SHA>
+<one to three sentence summary of the change>
+```
+
+**Push back (no commit exists):**
+```
+Not applied: <technical reason with concrete evidence>
+```
+
+Reuse the same SHA across accept replies when one natural edit resolves several threads.
+
+**Do not pad a push-back with a "neat" SHA from a recent commit.** The reader follows the link expecting *the fix* and lands on an unrelated commit — a misleading signal dressed as tidy. The structural difference (SHA vs no SHA) signals the semantic difference (commit vs no commit). Form follows substance.
 
 ## Iterate until terminated
 
-After the base auto cycle finishes one round:
+After the base auto cycle finishes one round, re-request Copilot's review and wait again — **whether or not any fix was pushed this round**. A zero-fix round still re-requests so Copilot can confirm there's nothing new on the unchanged state.
 
-- **Any fix pushed this round** → re-request (`gh pr edit <PR> --add-reviewer @copilot`); the bot hasn't seen the new commits.
-- **Zero fixes pushed this round** → terminate (after the base cycle has posted all push-back replies and resolved their threads).
-- **Review body contained "generated no new comments"** → terminate.
+**The only termination condition:** the new review body contains the string `"generated no new comments"`. Until then, keep looping.
 
-Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and has nothing new to say". The new commits are themselves unreviewed diff; the pull toward "done" gets stronger each round. **Termination is observed Copilot state, not subjective completion.**
+Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and explicitly confirms it has nothing new to say". The pull toward "done" gets stronger each round; resist it. **Termination is observed Copilot state, not subjective completion.**
 
-## Copilot's frequent false-positive categories
-
-The base's verify-before-implement rule applies; Copilot specifically gets these wrong often:
-
-| Category | Example | Verification |
-|---|---|---|
-| Compilation misjudgment | "This code won't compile" | Actually run the build/test |
-| Phantom symbol | "Function X is missing" | `grep` / `Read` |
-| Convention ignorance | "Use the standard fmt" | Compare against AGENTS.md / CLAUDE.md |
-| Already-fixed | The fix landed in a prior round | `git log -p <file>` |
-| Behavioral-bug claim | "Breaks under scenario X" | Apply `systematic-debugging` — Phase 1 root cause |
+(GitHub may someday reword the termination string. If that happens, the loop will continue running until a human intervenes — the cap on re-requests is "the user pressing stop", not a built-in count.)
 
 ## Red Flags — STOP
 
 - "I'll just drop a `/review` comment, it's faster" → that doesn't trigger the bot
-- "I addressed every comment Copilot posted, we're done" → the new commits haven't been seen
-- "It's the third round, surely nothing's left" → the *feeling* of completion is not the termination condition
+- "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
+- "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't confirmed termination
+- "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway; the confirmation is observed, not inferred
 - "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15
