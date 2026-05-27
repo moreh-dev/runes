@@ -25,7 +25,7 @@ If you've already posted such a comment, delete it: `gh api -X DELETE repos/{own
 
 ### Wait for the new review with polling, not blind sleep
 
-Capture the bot's current review count, *then* request the review, *then* poll until the count increments. Use a polling loop (in Claude Code: run via the `Monitor` tool; in any harness: a backgrounded shell `until` loop) so the next round resumes as soon as the new review lands:
+Capture the bot's current review count, *then* request the review, *then* poll until the count increments. Use a bounded polling loop (in Claude Code: run via the `Monitor` tool; in any harness: a backgrounded shell `for`/`until` loop with an iteration cap) so the next round resumes as soon as the new review lands:
 
 ```bash
 COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
@@ -97,7 +97,7 @@ The base skill's verify-before-implement rule applies; Copilot specifically gets
 | Phantom symbol | "Function X is missing" | `grep` / `Read` the file(s) |
 | Convention ignorance | "Use the standard fmt" | Compare against project convention in AGENTS.md / CLAUDE.md |
 | Already-fixed | The fix landed in a prior round | `git log -p <file>` |
-| Behavioral-bug claim | "Breaks under scenario X" | Load `systematic-debugging` — start at Phase 1 (root cause), not at acceptance |
+| Behavioral-bug claim | "Breaks under scenario X" | Apply `systematic-debugging` — start at Phase 1 (root cause), not at acceptance |
 
 ## Red Flags — STOP
 
