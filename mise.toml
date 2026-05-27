@@ -9,3 +9,24 @@ run = [
     "claude plugin marketplace update moreh-dev",
     "claude plugin update runes@moreh-dev",
 ]
+
+[tasks.codex-install-skills]
+run = [
+    "codex plugin marketplace add moreh-dev/runes",
+    "codex plugin add runes@moreh-dev",
+]
+
+[tasks.codex-update-skills]
+run = [
+    "codex plugin marketplace upgrade moreh-dev",
+    "codex plugin add runes@moreh-dev",
+]
+
+[tasks.gemini-install-extension]
+run = ["gemini extensions install https://github.com/moreh-dev/runes"]
+
+[tasks.gemini-update-extension]
+run = ["gemini extensions update runes"]
+
+[tasks.check-skills-sync]
+run = ["scripts/check-skills-sync.sh"]

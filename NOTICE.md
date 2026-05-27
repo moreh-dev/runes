@@ -1,6 +1,6 @@
 This repository contains moreh-specific agent skills.
 
-The initial skills in `skills/` were copied from `obra/superpowers`:
+The initial skills in `plugins/runes/skills/` were copied from `obra/superpowers`:
 https://github.com/obra/superpowers
 
 Copied from upstream commit:

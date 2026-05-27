@@ -1,0 +1,37 @@
+{
+  "name": "runes",
+  "version": "0.2.0",
+  "description": "Moreh skills library for Codex",
+  "author": {
+    "name": "Moreh"
+  },
+  "homepage": "https://github.com/moreh-dev/runes",
+  "repository": "https://github.com/moreh-dev/runes",
+  "keywords": [
+    "skills",
+    "runes",
+    "moreh",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Runes",
+    "shortDescription": "Moreh skills library for Codex.",
+    "longDescription": "Runes provides Moreh development skills for planning, debugging, code review, TDD, and collaboration workflows in Codex.",
+    "developerName": "Moreh",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Runes for my development workflow.",
+      "Apply systematic debugging to this issue.",
+      "Review this implementation plan."
+    ]
+  }
+}

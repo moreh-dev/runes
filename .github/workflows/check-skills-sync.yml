@@ -1,0 +1,20 @@
+name: Check skills sync
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check-skills-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check skills mirror
+        run: scripts/check-skills-sync.sh
