@@ -17,7 +17,7 @@ gh pr edit <PR> --add-reviewer @copilot
 - `gh pr comment <PR> --body "/review"`
 - `gh pr comment <PR> --body "@copilot review"`
 
-If you've already posted such a comment, delete it: `gh api -X DELETE repos/{owner}/{repo}/issues/comments/{ID}`. The reviewer surface is the only reliable trigger.
+If such a comment was already posted by mistake, leave it in place and surface it to the user for manual cleanup — do not auto-delete via the API. The delete call is irreversible and trivially misfires on the wrong comment ID (the endpoint deletes any issue/PR comment by numeric ID, with no scope guard for "stray Copilot triggers"). The reviewer surface is the only reliable trigger.
 
 ## Wait, then fetch
 
