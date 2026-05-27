@@ -96,9 +96,7 @@ These patterns recur often enough across external reviewers (human contractors, 
 | Phantom symbol | "Function X is missing" / "Variable Y is undefined" | `grep` / `Read` the file(s) |
 | Convention ignorance | "Use the standard fmt" / "Should be camelCase" | Compare against project AGENTS.md / CLAUDE.md / style guide |
 | Already-fixed | The comment targets a stale state | `git log -p <file>` |
-| Behavioral-bug claim | "Breaks under scenario X" | Apply `systematic-debugging` — Phase 1 root cause, not symptom acceptance |
-
-These overlap with the "verify before implementing" rule above; the table is a concrete checklist of the patterns where verification most often disproves the claim.
+| Behavioral-bug claim | "Breaks under scenario X" | Apply `systematic-debugging` — reproduce the claimed scenario before accepting it |
 
 ## YAGNI Check for "Professional" Features
 
