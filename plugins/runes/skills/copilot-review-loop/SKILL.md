@@ -5,7 +5,7 @@ description: Use when the user asks to run, automate, or iterate on GitHub Copil
 
 # Copilot Review Loop
 
-**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-comment verify→fix→reply→resolve cycle (including the verify-before-implement rule and false-positive categories inherited via `receiving-code-review`). The delta below covers only Copilot-specific mechanics: trigger, wait, reply format, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
+**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-comment verify→fix→reply→resolve cycle, including all per-comment evaluation rules inherited from `receiving-code-review`. The delta below covers only Copilot-specific mechanics: trigger, wait, reply format, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
 
 ## Trigger via reviewer, never via comment
 
@@ -21,7 +21,7 @@ If you've already posted such a comment, delete it: `gh api -X DELETE repos/{own
 
 ## Wait, then fetch
 
-Capture the bot's review count *before* requesting; poll until it increments. Cap at ~20 minutes. On cap-elapsed, halt and report — the base auto skill's "unrecognized error" path.
+Capture the bot's review count *before* requesting; poll until it increments. Hard cap at 20 minutes (40 × 30s). On cap-elapsed, halt and report — the base auto skill's "unrecognized error" path.
 
 ```bash
 COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
@@ -59,7 +59,7 @@ The 40-character commit SHA on its own line auto-links to the commit on GitHub. 
 Not applied: <technical reason with concrete evidence>
 ```
 
-Reuse the same SHA across accept replies when one natural edit resolves several threads.
+Reuse the same SHA across accept replies only when one commit literally contains the fix for each of those threads (e.g., two comments on adjacent lines resolved by the same edit).
 
 **Do not pad a push-back with a "neat" SHA from a recent commit.** The reader follows the link expecting *the fix* and lands on an unrelated commit — a misleading signal dressed as tidy. The structural difference (SHA vs no SHA) signals the semantic difference (commit vs no commit). Form follows substance.
 
