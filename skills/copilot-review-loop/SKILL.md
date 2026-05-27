@@ -73,7 +73,7 @@ The 40-character commit SHA on its own line auto-links to the commit on GitHub. 
 Not applied: <technical reason with concrete evidence>
 ```
 
-Reuse the same SHA across multiple accept replies when one commit resolves several threads (e.g., two comments on adjacent lines fixed by the same edit — consistent with the base auto skill's commit-per-thread rule).
+Reuse the same SHA across multiple accept replies when one *natural* edit resolves several threads (e.g., two comments on adjacent lines fixed by the same change). Do not batch unrelated fixes into one commit just to deduplicate the SHA line — the base auto skill's "one commit per applied thread" rule still governs, and this is the narrow exception where the threads converge on a single change by their own logic.
 
 **Do not pad a push-back with a "neat" SHA from a recent commit.** The reader follows the link expecting *the fix* and lands on an unrelated commit — that is a misleading signal dressed as a tidy one. The structural difference (SHA vs no SHA) correctly signals the semantic difference (commit vs no commit). Form follows substance.
 
