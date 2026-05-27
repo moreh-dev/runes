@@ -19,6 +19,7 @@ Not covered in the principles skill because they apply only end-to-end:
 
 - **Precheck:** working tree must be clean — escalate if dirty.
 - **Commit:** one commit per applied thread, made immediately after the change. Conventional Commits, single scope. Pick the type by change kind — `fix` (bug), `refactor` (cleanup), `docs` (docs-only), `test` (test changes), `style` (formatting-only). Scope is the top-level directory of the primary modified file (e.g., `skills`, `cmd`, `api`).
+- **Reply format:** accept replies start with the 40-character commit SHA on its own line (GitHub auto-links it to the commit). Push-back replies have no SHA — there is no commit to link to, and a recent unrelated SHA misleads the reader by sending them to an irrelevant diff. When one natural edit resolves several threads (e.g., two comments on adjacent lines fixed by the same change), reuse the SHA across their accept replies — keep that as one commit by design, not by batching unrelated fixes.
 - **Push:** one push after the full loop. Never force-push.
 
 ### When To Stop (Escalate)
