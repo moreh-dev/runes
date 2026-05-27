@@ -40,7 +40,7 @@ until cur=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews \
 
 The login matcher mirrors the base `receiving-code-review` rule: REST sometimes returns `Copilot`, GraphQL returns `copilot-pull-request-reviewer[bot]`, and the `type == "Bot"` + login-contains-`copilot` predicate covers both without committing to either spelling.
 
-Typical latency 1–5 minutes; cap at ~15–20 minutes (≈30–40 polls at `sleep 30`). If no review appears within the cap, escalate per the base auto skill.
+Typical latency 1–5 minutes; cap at ~15–20 minutes (≈30–40 polls at `sleep 30`). If no review appears within the cap, halt the loop and report to the user (bot did not respond; suggest a manual `gh pr edit --add-reviewer @copilot` retry or skipping the round) — this is the base auto skill's "unrecognized error" path.
 
 ### Fetch the new review's body and inline comments
 
@@ -51,7 +51,7 @@ gh api repos/{owner}/{repo}/pulls/{PR}/comments \
   --jq ".[] | select(.pull_request_review_id == $LATEST_ID) | {id, path, line, body}"
 ```
 
-Read the new **review body first**. If it contains the string **"generated no new comments"**, terminate the loop immediately — there is nothing to act on.
+Read the new **review body first**. If it contains the string **"generated no new comments"**, terminate the loop immediately — there is nothing to act on. The exact wording is GitHub's current Copilot convention; if it ever changes, the secondary termination condition below ("zero fixes pushed this round") still bounds the loop, so the failure mode is a wasted re-request, not a runaway.
 
 ### Reply format — SHA only when there is a SHA
 
