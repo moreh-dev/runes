@@ -1,0 +1,2 @@
+plugins/runes/hooks/session-start text eol=lf
+plugins/runes/hooks/run-hook.cmd text eol=lf
