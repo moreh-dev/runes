@@ -29,12 +29,12 @@ The work unit each round is **every unresolved Copilot thread**, not a single re
 When the Assess step calls for a fresh review:
 
 ```
-gh pr edit <PR> --add-reviewer @copilot
+gh pr edit {pr} --add-reviewer @copilot
 ```
 
 **Prohibited** (silently litters the PR; does NOT trigger the bot):
-- `gh pr comment <PR> --body "/review"`
-- `gh pr comment <PR> --body "@copilot review"`
+- `gh pr comment {pr} --body "/review"`
+- `gh pr comment {pr} --body "@copilot review"`
 
 If such a comment was already posted by mistake, leave it in place and surface it to the user for manual cleanup — do not auto-delete via the API. The delete call is irreversible and trivially misfires on the wrong comment ID (the endpoint deletes any issue/PR comment by numeric ID, with no scope guard for "stray Copilot triggers"). The reviewer surface is the only reliable trigger.
 
@@ -45,15 +45,15 @@ COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | cont
 COPILOT_THREAD='select((.isResolved | not) and ((.comments.nodes[0].author.login // "") | ascii_downcase | contains("copilot")))'
 
 # --- Assess BEFORE requesting ---
-pending=$(gh api repos/{owner}/{repo}/pulls/{PR} \
+pending=$(gh api repos/{owner}/{repo}/pulls/{pr} \
   --jq '[.requested_reviewers[]? | select(.login | ascii_downcase | contains("copilot"))] | length')
 unresolved=$(gh api graphql -f query='
   query($owner:String!,$repo:String!,$pr:Int!){ repository(owner:$owner,name:$repo){
     pullRequest(number:$pr){ reviewThreads(first:100){ nodes{
       isResolved comments(first:1){ nodes{ author{ login } } } } } } } }' \
-  -F owner={owner} -F repo={repo} -F pr={PR} \
+  -F owner={owner} -F repo={repo} -F pr={pr} \
   --jq "[.data.repository.pullRequest.reviewThreads.nodes[] | $COPILOT_THREAD] | length")
-start=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews --jq "[.[] | $COPILOT_BOT] | length")
+start=$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | length")
 
 # --- Request only on a clean slate ---
 if [ "${pending:-0}" -gt 0 ]; then
@@ -61,14 +61,14 @@ if [ "${pending:-0}" -gt 0 ]; then
 elif [ "${unresolved:-0}" -gt 0 ]; then
   wait_for_review=0                          # completed review left open threads → process them now
 else
-  gh pr edit {PR} --add-reviewer @copilot    # nothing in flight, nothing open → request fresh
+  gh pr edit {pr} --add-reviewer @copilot    # nothing in flight, nothing open → request fresh
   wait_for_review=1
 fi
 
 # --- Wait for the in-flight review to land (cap 20 min = 40 × 30s) ---
 if [ "$wait_for_review" -eq 1 ]; then
   for _ in $(seq 1 40); do
-    cur=$(gh api repos/{owner}/{repo}/pulls/{PR}/reviews --jq "[.[] | $COPILOT_BOT] | length")
+    cur=$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | length")
     [ "${cur:-0}" -gt "${start:-0}" ] && break
     sleep 30
   done
@@ -80,7 +80,7 @@ gh api graphql -f query='
     pullRequest(number:$pr){ reviewThreads(first:100){ nodes{
       id isResolved
       comments(first:100){ nodes{ databaseId path line body author{ login } } } } } } } }' \
-  -F owner={owner} -F repo={repo} -F pr={PR} \
+  -F owner={owner} -F repo={repo} -F pr={pr} \
   --jq ".data.repository.pullRequest.reviewThreads.nodes[] | $COPILOT_THREAD
         | {threadId: .id, comments: [.comments.nodes[] | {id: .databaseId, path, line, body}]}"
 ```
@@ -113,7 +113,7 @@ After the base auto cycle finishes a round, loop back to **Assess** — never sk
 **The only termination condition:** a freshly-requested review lands whose body contains the string `"generated no new comments"` and the unresolved-threads fetch comes back empty. Read that body with:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{PR}/reviews --jq "[.[] | $COPILOT_BOT] | sort_by(.submitted_at) | last | .body"
+gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | sort_by(.submitted_at) | last | .body"
 ```
 
 A round that only drained pre-existing threads (an in-flight or already-completed review) does NOT terminate the loop — it must come back around to a clean-slate request so Copilot confirms the final state. Until then, keep looping.
