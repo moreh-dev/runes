@@ -76,7 +76,7 @@ if [ "$wait_for_review" -eq 1 ]; then
   [ "${cur:-0}" -gt "${start:-0}" ] || { echo "no Copilot review landed within 20 min — halt and report" >&2; exit 1; }
 fi
 
-# --- Fetch ALL unresolved Copilot threads (the round's work unit) ---
+# --- Fetch unresolved Copilot threads, up to the first 100 (the round's work unit) ---
 gh api graphql -f query='
   query($owner:String!,$repo:String!,$pr:Int!){ repository(owner:$owner,name:$repo){
     pullRequest(number:$pr){ reviewThreads(first:100){ nodes{
@@ -87,7 +87,7 @@ gh api graphql -f query='
         | {threadId: .id, comments: [.comments.nodes[] | {id: .databaseId, path, line, body}]}"
 ```
 
-On cap-elapsed with no review landed, halt and report — the base auto skill's "unrecognized error" path. The `threadId` feeds the base skill's GraphQL `resolveReviewThread`; the `contains("copilot")` matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`) identities.
+On cap-elapsed with no review landed, halt and report — the base auto skill's "unrecognized error" path. The `threadId` feeds the base skill's GraphQL `resolveReviewThread`; the `contains("copilot")` matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`) identities. The `first:100` page size on threads and comments covers any realistic PR — it is a cap, not a guarantee of literally *all*; if a PR ever exceeds it, raise the page size or paginate rather than silently dropping threads.
 
 ## Reply format — SHA only when there is a SHA
 
