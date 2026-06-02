@@ -72,6 +72,8 @@ if [ "$wait_for_review" -eq 1 ]; then
     [ "${cur:-0}" -gt "${start:-0}" ] && break
     sleep 30
   done
+  # cap elapsed without the review landing → halt, don't fetch on stale state
+  [ "${cur:-0}" -gt "${start:-0}" ] || { echo "no Copilot review landed within 20 min — halt and report" >&2; exit 1; }
 fi
 
 # --- Fetch ALL unresolved Copilot threads (the round's work unit) ---
