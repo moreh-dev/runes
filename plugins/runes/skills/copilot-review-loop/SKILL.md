@@ -18,7 +18,7 @@ So every round begins by taking stock of the PR's Copilot state, and **requests 
 
 | State | Signal | Action |
 |---|---|---|
-| Review in flight | Copilot listed as a `requested_reviewer` (hasn't submitted yet) | **Wait** for it to land — do NOT re-request |
+| Review in flight | Copilot appears in `requested_reviewers` (hasn't submitted yet) | **Wait** for it to land — do NOT re-request |
 | Open threads exist | Unresolved Copilot review threads on the PR | **Process** them first — do NOT request |
 | Clean slate | neither of the above | **Request** a fresh review, then wait |
 
