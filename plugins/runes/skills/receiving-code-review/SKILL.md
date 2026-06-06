@@ -246,6 +246,8 @@ date filters, CSV export"
 
 When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
 
+When doing this over SSH or inside nested shell commands, avoid hand-nesting GraphQL strings in a one-liner. Write a temporary shell script with `gh api graphql` calls (reply, resolve, re-query), copy/run it remotely, and verify `isResolved: true`. This prevents quoting failures from turning a resolved review task into a partial side effect.
+
 ### Resolution Policy
 
 After replying:

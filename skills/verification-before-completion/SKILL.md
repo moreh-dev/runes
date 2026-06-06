@@ -81,6 +81,14 @@ Skip any step = lying, not verifying
 ❌ "Should pass now" / "Looks correct"
 ```
 
+**Rust module-filtered tests:**
+```
+✅ cargo test -p <pkg> --lib <module_path> -- --nocapture
+   Read the lib test-binary summary, e.g. "21 passed; 0 failed".
+❌ cargo test -p <pkg> <module_path> + tailing the final output only — integration
+   test binaries may run afterward with "0 tests", hiding the actual lib summary.
+```
+
 **Regression tests (TDD Red-Green):**
 ```
 ✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
@@ -91,6 +99,14 @@ Skip any step = lying, not verifying
 ```
 ✅ [Run build] [See: exit 0] "Build passes"
 ❌ "Linter passed" (linter doesn't check compilation)
+```
+
+**Git/PR branch sync:**
+```
+✅ git rev-parse HEAD + git rev-parse @{u} + git status --short --branch
+   (or git ls-remote origin refs/heads/<branch> when PR CLI is unavailable)
+   "Local and remote branch tips match"
+❌ "Pushed successfully" without verifying the remote ref after an amend/force-with-lease
 ```
 
 **Requirements:**

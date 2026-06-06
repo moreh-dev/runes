@@ -89,6 +89,12 @@ gh api graphql -f query='
 
 On cap-elapsed with no review landed, halt and report — the base auto skill's "unrecognized error" path. The `threadId` feeds the base skill's GraphQL `resolveReviewThread`; the `contains("copilot")` matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`) identities. The `first:100` page size on threads and comments covers any realistic PR — it is a cap, not a guarantee of literally *all*; if a PR ever exceeds it, raise the page size or paginate rather than silently dropping threads.
 
+### REST-empty is not proof of no comments
+
+If the latest Copilot review body says it generated comments but the REST pull-request comments query returns nothing for that review ID, query GraphQL `reviewThreads` before re-requesting or reporting success. Unresolved bot threads can exist in GraphQL even when REST looks empty. See `references/graphql-review-threads.md` for copy-paste queries to list unresolved Copilot threads and resolve them after the base auto cycle.
+
+Only treat the round as clean when the latest Copilot review body contains `generated no new comments`.
+
 ## Reply format — SHA only when there is a SHA
 
 The 40-character commit SHA on its own line auto-links to the commit on GitHub. The format is **load-bearing**: the reader clicks the SHA to see *the fix*.
@@ -110,7 +116,9 @@ Reuse the same SHA across accept replies only when one commit literally contains
 
 ## Iterate until terminated
 
-After the base auto cycle finishes a round, loop back to **Assess** — never skip it. The round just resolved every open Copilot thread, so the next Assess sees a clean slate and requests a fresh review, letting Copilot re-examine the new state — **whether or not any fix was pushed this round**. A zero-fix round still re-requests so Copilot can confirm there's nothing new on the unchanged state.
+After the base auto cycle finishes a round, first verify all Copilot-authored unresolved review threads are resolved via GraphQL (`reviewThreads(first:100) { nodes { isResolved comments(first:10) { nodes { author { login } } } } }`). Do not re-request Copilot while any unresolved Copilot thread remains; resolve/reply to those threads first, including threads that did not appear in REST `pulls/{pr}/comments` filtered by `pull_request_review_id`.
+
+Then loop back to **Assess** — never skip it. The round just resolved every open Copilot thread, so the next Assess sees a clean slate and requests a fresh review, letting Copilot re-examine the new state — **whether or not any fix was pushed this round**. A zero-fix round still re-requests so Copilot can confirm there's nothing new on the unchanged state.
 
 **The only termination condition:** a freshly-requested review lands whose body contains the string `"generated no new comments"` and the unresolved-threads fetch comes back empty. Read that body with:
 
@@ -127,8 +135,10 @@ Round-N's contract is not "respond to round-N's comments" — it is "iterate unt
 ## Red Flags — STOP
 
 - "I'll just `--add-reviewer` to kick it off" → Assess first; an auto-triggered review may already be in flight or done. A blind request duplicates it and orphans the first review's threads.
+- REST `requested_reviewers` returning 201 is not proof Copilot will actually post a new review. Still use the review-count increment as the source of truth; if it does not increment within the cap, report the timeout and include current unresolved-thread state.
 - "I'll just drop a `/review` comment, it's faster" → that doesn't trigger the bot
 - "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
-- "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't confirmed termination
-- "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway; the confirmation is observed, not inferred
+- "I addressed every comment Copilot posted, we're done" → first verify unresolved Copilot GraphQL review threads are zero, then re-request; Copilot hasn't confirmed termination
+- "REST returned no comments for the latest review, so there are no unresolved comments" → check GraphQL review threads; Copilot can leave unresolved threads not surfaced by that REST filter
+- "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway after unresolved Copilot threads are zero; the confirmation is observed, not inferred
 - "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15

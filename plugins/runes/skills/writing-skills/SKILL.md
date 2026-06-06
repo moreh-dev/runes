@@ -19,6 +19,8 @@ You write test cases (pressure scenarios with subagents), watch them fail (basel
 
 **Official guidance:** For Anthropic's official skill authoring best practices, see anthropic-best-practices.md. This document provides additional patterns and guidelines that complement the TDD-focused approach in this skill.
 
+**Plugin packaging:** When packaging skills as an agent plugin, host-specific bootstrap matters. Claude/Copilot-style hosts may need SessionStart hooks under the plugin root, while Gemini should use a root `GEMINI.md` via `gemini-extension.json`'s `contextFileName`. See `references/plugin-bootstrap-hooks.md`.
+
 ## What is a Skill?
 
 A **skill** is a reference guide for proven techniques, patterns, or tools. Skills help future Claude instances find and apply effective approaches.

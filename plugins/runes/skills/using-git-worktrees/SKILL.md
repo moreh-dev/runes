@@ -169,6 +169,22 @@ Ready to implement <feature-name>
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
 
+## Remote desktop / Jira ticket workflow
+
+When Hyeonki asks to work on a Jira ticket through the remote desktop:
+
+1. Read the Jira issue first and use its summary/description to identify the right repository. Do not assume from the issue key alone.
+2. Treat bracketed Jira summary prefixes such as `[heimdall]` as component labels, not definitive repository names. Confirm the repo from the actual artifact named in the description, e.g. chart path, command flags, package names, or concrete strings.
+3. If multiple likely repos exist under `~/github/moreh-dev/`, search for the concrete strings from the Jira description before creating or editing a worktree. Shared paths are not enough; grep function names, flags, chart keys, or other exact terms from the ticket.
+4. After confirming the repo, inspect `git worktree list --porcelain`. If a clean worktree for the same ticket already exists, reuse and fast-forward it even if it is under a legacy/project-local path such as `.worktrees/<ticket>`.
+5. If no ticket worktree exists, create the remote worktree under `~/worktrees/<repo>-<ticket-or-task>` on the `desktop` SSH host.
+6. If you accidentally touch the wrong repo, immediately `git restore` those changes and verify that wrong worktree is clean before continuing in the correct repo.
+7. If a delegated coding agent reports `max_turns`, inspect the remote worktree yourself before continuing. The agent may have made no changes, partial changes, or useful changes without a final summary.
+8. Verify with `git status --short --branch`, `git diff --stat`, and task-specific render/test commands before reporting completion. For Moreh Rust Jira tickets, use the layered focused-then-repo verification sequence in `references/moreh-rust-jira-verification.md`.
+9. On the remote desktop, prefer short non-interactive commands by making mise shims available rather than spelling out `mise exec` every time. Non-interactive `zsh -lc` does not source `~/.zshrc`; if `command -v prek`/`go` fails, check whether `~/.zshenv` contains a minimal shim PATH such as `export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"`. With shims on PATH, commands remain directory-aware: after `cd` into the repo/worktree, local `mise.toml` wins (e.g. Odin's `go`, `helm`, `golangci-lint`, `controller-gen`, `setup-envtest`), and global config fills gaps (e.g. `prek`). If shims are unavailable and editing shell startup is out of scope, fall back to `/home/hhk7734/.local/bin/mise exec -- <cmd>`. Avoid putting full `eval "$(mise activate zsh)"` in `~/.zshenv`; it is sourced by every zsh process and should stay minimal. Creating a worktree does not automatically install Git hooks. Check hook state with `git rev-parse --git-common-dir` and inspect `$COMMON/hooks/prepare-commit-msg` or `$COMMON/hooks/pre-commit` before assuming hooks are active.
+
+Additional detail: see `references/remote-jira-repo-selection.md` for repo-selection pitfalls and examples when Jira summaries/components are ambiguous.
+
 ## Common Mistakes
 
 ### Fighting the harness
