@@ -15,15 +15,14 @@ Do NOT invoke any implementation skill, write any code, scaffold any project, or
 
 ## Documentation Roles
 
-Three directories cooperate. This skill produces the file in `docs/specs/`:
+Two directories cooperate. This skill produces the file in `docs/specs/`:
 
 | Directory | Role | Author | Naming |
 | --- | --- | --- | --- |
-| `docs/PRDs/` | Business logic, what we want and why (long-lived) | Human-curated; skill may propose for approval | `<topic>.md` |
-| `docs/specs/` | Implementation snapshot satisfying the PRD on a given day | This skill (with human approval) | `YYYY-MM-DD-<topic>.md` |
+| `docs/specs/` | Requirements and design snapshot on a given day — what we're building, why, and how | This skill (with human approval) | `YYYY-MM-DD-<topic>.md` |
 | `docs/plans/` | Ordered task list executing an approved spec | `writing-plans` skill | `YYYY-MM-DD-<feature-name>.md` |
 
-Dates in spec and plan filenames use the `Asia/Seoul` timezone. Specs are dated snapshots — if a spec becomes stale, write a new dated file rather than editing the old one. PRDs are evergreen and human-curated; this skill does not generate them, it only reads them as input.
+Dates in spec and plan filenames use the `Asia/Seoul` timezone. Specs are dated snapshots — if a spec becomes stale, write a new dated file rather than editing the old one. Do not split a design into separate PRD and spec documents; the spec carries both the requirements and the design.
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
@@ -38,7 +37,7 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design docs** — PRD (`docs/PRDs/<topic>.md`) and dated spec (`docs/specs/YYYY-MM-DD-<topic>.md`); commit both
+6. **Write design doc** — dated spec (`docs/specs/YYYY-MM-DD-<topic>.md`); commit it
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -81,7 +80,7 @@ digraph brainstorming {
 
 **Understanding the idea:**
 
-- Check out the current project state first (files, docs, recent commits). In particular, scan `docs/PRDs/` for a long-lived PRD that constrains this work; if one exists, the spec must satisfy it.
+- Check out the current project state first (files, docs, recent commits). In particular, scan `docs/specs/` for earlier specs that touch this work; the new spec must stay consistent with them or explicitly supersede them.
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
@@ -120,10 +119,9 @@ digraph brainstorming {
 
 **Documentation:**
 
-- **PRD** (`docs/PRDs/<topic>.md`) — evergreen contracts; propose changes during the conversation, commit only after user approval. No dated incidents or implementation snapshots here.
-- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — implementation snapshot (decisions, alternatives, trade-offs); immutable once written.
+- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — requirements and design snapshot (goals, decisions, alternatives, trade-offs); immutable once written. Do not split it into a separate PRD; the spec is the single design document.
 
-Use elements-of-style:writing-clearly-and-concisely if available. Commit both. (User preferences override these paths.)
+Use elements-of-style:writing-clearly-and-concisely if available. Commit it. (User preferences override these paths.)
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
