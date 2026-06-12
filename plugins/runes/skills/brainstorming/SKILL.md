@@ -22,7 +22,7 @@ Two directories cooperate. This skill produces the file in `docs/specs/`:
 | `docs/specs/` | Requirements and design snapshot on a given day — what we're building, why, and how | This skill (with human approval) | `YYYY-MM-DD-<topic>.md` |
 | `docs/plans/` | Ordered task list executing an approved spec | `writing-plans` skill | `YYYY-MM-DD-<feature-name>.md` |
 
-Dates in spec and plan filenames use the `Asia/Seoul` timezone. Specs are dated snapshots — if a spec becomes stale, write a new dated file rather than editing the old one. Do not split a design into separate PRD and spec documents; the spec carries both the requirements and the design.
+Dates in spec and plan filenames use the `Asia/Seoul` timezone. Specs are dated snapshots — if a spec becomes stale, write a new dated file rather than editing the old one. Do not split a design into separate requirements and design documents; the spec carries both.
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
@@ -119,7 +119,7 @@ digraph brainstorming {
 
 **Documentation:**
 
-- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — requirements and design snapshot (goals, decisions, alternatives, trade-offs); immutable once written. Do not split it into a separate PRD; the spec is the single design document.
+- **Dated spec** (`docs/specs/YYYY-MM-DD-<topic>.md`) — requirements and design snapshot (goals, decisions, alternatives, trade-offs); immutable once written. The spec is the single design document; do not split it into separate documents.
 
 Use elements-of-style:writing-clearly-and-concisely if available. Commit it. (User preferences override these paths.)
 
