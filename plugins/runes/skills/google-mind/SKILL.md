@@ -120,4 +120,4 @@ A fuller reference distilled from each Google guide is bundled in `references/` 
 - `references/reviewer-guide.md` — Standard of code review, what to look for, navigating a CL, speed, writing comments, handling pushback
 - `references/author-guide.md` — Writing good CL descriptions, small CLs, handling reviewer comments
 
-Source: Google Engineering Practices — the [Code Reviewer's Guide](https://google.github.io/eng-practices/review/reviewer/) and [CL Author's Guide](https://google.github.io/eng-practices/review/developer/), © Google LLC, licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The bundled `references/` are adapted/distilled from these originals, not verbatim copies (see NOTICE.md).
+Source: Google Engineering Practices — the [Code Reviewer's Guide](https://google.github.io/eng-practices/review/reviewer/) and [CL Author's Guide](https://google.github.io/eng-practices/review/developer/), © Google LLC, licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The bundled `references/` are adapted/distilled from these originals, not verbatim copies (see NOTICE.md at the repository root).
