@@ -1,6 +1,6 @@
 # CL Author's Guide — Full Reference
 
-Distilled from https://google.github.io/eng-practices/review/developer/ (CC-BY 3.0).
+Adapted (distilled, not verbatim) from Google's CL Author's Guide — https://google.github.io/eng-practices/review/developer/ — © Google LLC, licensed under CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 
 Read this when the SKILL.md summary doesn't have enough detail for an authoring question — particularly when the user is asking how to write a CL description for a tricky change, how to split a large CL, or how to respond to a specific piece of reviewer feedback.
 

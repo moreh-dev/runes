@@ -115,9 +115,9 @@ Do:
 
 ## References
 
-The full text of each Google guide chapter is bundled in `references/`. Load these only when you need exact wording or a section the summary above didn't cover:
+A fuller reference distilled from each Google guide is bundled in `references/` (adapted, not verbatim). Load these when you need more detail than the summary above for a specific situation:
 
 - `references/reviewer-guide.md` — Standard of code review, what to look for, navigating a CL, speed, writing comments, handling pushback
 - `references/author-guide.md` — Writing good CL descriptions, small CLs, handling reviewer comments
 
-Source: https://google.github.io/eng-practices/ — Google Engineering Practices, licensed CC-BY 3.0.
+Source: Google Engineering Practices — the [Code Reviewer's Guide](https://google.github.io/eng-practices/review/reviewer/) and [CL Author's Guide](https://google.github.io/eng-practices/review/developer/), © Google LLC, licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The bundled `references/` are adapted/distilled from these originals, not verbatim copies (see NOTICE.md).

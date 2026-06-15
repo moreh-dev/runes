@@ -1,6 +1,6 @@
 # Reviewer's Guide — Full Reference
 
-Distilled from https://google.github.io/eng-practices/review/reviewer/ (CC-BY 3.0).
+Adapted (distilled, not verbatim) from Google's Code Reviewer's Guide — https://google.github.io/eng-practices/review/reviewer/ — © Google LLC, licensed under CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 
 Read this when the SKILL.md summary doesn't have enough detail for a specific situation — particularly when the user is asking about a nuanced reviewer judgment call (pushback, speed tradeoffs, exact wording of a comment).
 
