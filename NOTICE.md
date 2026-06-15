@@ -16,7 +16,7 @@ Licensed under the MIT License. See `third_party/superpowers/LICENSE`.
 Moreh modifications and original Moreh skills:
 Copyright (c) 2026 Moreh
 
-The `google-mind` skill in `skills/google-mind/` and `plugins/runes/skills/google-mind/`
+The `review-with-google-mind` skill in `skills/review-with-google-mind/` and `plugins/runes/skills/review-with-google-mind/`
 bundles material adapted from Google's Engineering Practices documentation
 (the Code Reviewer's Guide and the CL Author's Guide):
 https://github.com/google/eng-practices

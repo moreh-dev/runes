@@ -1,9 +1,9 @@
 ---
-name: google-mind
-description: Apply Google's published engineering practices (from google/eng-practices — the Code Reviewer's Guide and the CL Author's Guide) as a lens to whatever the user is currently working on. Invoke only when the user explicitly asks via `/google-mind` or names this skill by name (e.g. "run google-mind on this PR", "google-mind this review comment", "would google approve this CL?", "apply google-mind to X"). Especially useful for evaluating a code review, a PR/CL description, change size, whether to push back on a reviewer, or a design tradeoff through Google's principles. Do NOT auto-trigger for general code-review or PR work — only when the user names the skill.
+name: review-with-google-mind
+description: Apply Google's published engineering practices (from google/eng-practices — the Code Reviewer's Guide and the CL Author's Guide) as a lens to whatever the user is currently working on. Invoke only when the user explicitly asks via `/review-with-google-mind` or names this skill by name (e.g. "run review-with-google-mind on this PR", "review-with-google-mind this review comment", "would google approve this CL?", "apply review-with-google-mind to X"). Especially useful for evaluating a code review, a PR/CL description, change size, whether to push back on a reviewer, or a design tradeoff through Google's principles. Do NOT auto-trigger for general code-review or PR work — only when the user names the skill.
 ---
 
-# Google Mind
+# Review with Google Mind
 
 A lens, not a checklist. Apply Google's published engineering practices (from [google/eng-practices](https://github.com/google/eng-practices)) to whatever the user is currently doing.
 
@@ -22,7 +22,7 @@ What is the user doing right now? Common situations:
 - **Handling review feedback** — they got a review comment and are deciding how to respond → Handling Comments mindset
 - **Making an engineering decision** — design choice, refactor scope, "should I do X" → general principles (small steps, no over-engineering, code health as a trend)
 
-If the user invoked `/google-mind` with no clear target, ask what they want this lens applied to before launching into a generic lecture about Google's principles. Don't guess.
+If the user invoked `/review-with-google-mind` with no clear target, ask what they want this lens applied to before launching into a generic lecture about Google's principles. Don't guess.
 
 ### Step 2 — Apply the principles that matter, skip the ones that don't
 
