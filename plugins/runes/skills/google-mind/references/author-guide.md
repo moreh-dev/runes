@@ -22,7 +22,7 @@ Future developers will search for your CL based on its description. Someone in t
 
 - Short summary of what is being done.
 - Complete sentence, written as though it was an order.
-- Follow by empty line.
+- Followed by an empty line.
 
 The **first line** of a CL description should be a short summary of *specifically* what is being done by the CL, followed by a blank line. This is what most future code searchers will see when they are browsing through a list of CLs, so the first line should be informative enough that they don't have to read your CL or its whole description to understand what your CL actually *did* or how it differs from other CLs. By tradition, the first line of a CL description is a complete sentence, written as though it were an order (an imperative sentence). For example, say `"Delete the FizzBuzz RPC and replace it with the new system."` instead of `"Deleting the FizzBuzz RPC and replacing it with the new system."` You don't have to write the rest of the description as an imperative sentence, though.
 
