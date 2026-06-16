@@ -47,12 +47,23 @@ Task tool (general-purpose):
     reliable when files are focused. Keep this in mind:
     - Follow the file structure defined in the plan
     - Each file should have one clear responsibility with a well-defined interface
+    - Declare types top-down within a file: the high-level / exported type first,
+      subordinate detail types after, so a reader sees the main type early (~first 50 lines)
     - If a file you're creating is growing beyond the plan's intent, stop and report
       it as DONE_WITH_CONCERNS — don't split files on your own without plan guidance
     - If an existing file you're modifying is already large or tangled, work carefully
       and note it as a concern in your report
     - In existing codebases, follow established patterns. Improve code you're touching
       the way a good developer would, but don't restructure things outside your task.
+
+    ## Comments
+
+    Default to no comments. Add one only when the WHY is non-obvious — a hidden
+    constraint, a subtle invariant, a bug workaround, or behavior that would surprise a
+    reader. Don't narrate WHAT a well-named identifier already conveys (a one-line
+    explanation on a public API is fine). Don't reference the current task, fix, or
+    callers — that belongs in the PR description and rots as the code evolves. Describe
+    the current required behavior, not obsolete "used to do X" history.
 
     ## When You're in Over Your Head
 
@@ -84,6 +95,7 @@ Task tool (general-purpose):
     - Is this my best work?
     - Are names clear and accurate (match what things do, not how they work)?
     - Is the code clean and maintainable?
+    - Are types declared top-down, and comments limited to non-obvious WHY?
 
     **Discipline:**
     - Did I avoid overbuilding (YAGNI)?

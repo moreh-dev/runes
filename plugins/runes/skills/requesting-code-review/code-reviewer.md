@@ -43,6 +43,9 @@ Task tool (general-purpose):
     - Type safety where applicable?
     - DRY without premature abstraction?
     - Edge cases handled?
+    - Types declared top-down — exported / high-level type first (visible within ~50 lines), subordinate detail types below?
+    - Comments justify non-obvious WHY (constraint, invariant, workaround, surprising behavior), not WHAT a well-named identifier already conveys? (A one-line explanation on a public API is fine.)
+    - No comments referencing the current task/fix/callers, and no obsolete "used to do X" history?
 
     **Architecture:**
     - Sound design decisions?
