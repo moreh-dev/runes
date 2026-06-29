@@ -119,7 +119,8 @@ After the base auto cycle finishes a round, loop back to **Assess** — never sk
 **The only termination condition:** a freshly-requested review lands whose body contains the string `"generated no new comments"` and the unresolved-threads fetch comes back empty. Read that body with:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | sort_by(.submitted_at) | last | .body"
+gh api repos/{owner}/{repo}/pulls/{pr}/reviews \
+  --jq '[.[] | select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))] | sort_by(.submitted_at) | last | .body'
 ```
 
 A round that only drained pre-existing threads (an in-flight or already-completed review) does NOT terminate the loop — it must come back around to a clean-slate request so Copilot confirms the final state. Until then, keep looping.
