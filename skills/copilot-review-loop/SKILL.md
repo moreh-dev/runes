@@ -108,41 +108,31 @@ Reuse the same SHA across accept replies only when one commit literally contains
 
 **Do not pad a push-back with a "neat" SHA from a recent commit.** The reader follows the link expecting *the fix* and lands on an unrelated commit — a misleading signal dressed as tidy. The structural difference (SHA vs no SHA) signals the semantic difference (commit vs no commit). Form follows substance.
 
-## Triage every comment: substantive vs cosmetic
-
-Copilot's reviews skew toward repeatable nits, so triage each comment before acting:
-
-- **Substantive** — warrants a change: a behavior or correctness bug, a chart/API contract mismatch, a convention or security violation. Apply it, or refute it with evidence when the bot is wrong.
-- **Cosmetic** — warrants none: phrasing, formatting, a path or style preference, a theoretical-only concern with no behavioral impact. Push back (`Not applied: cosmetic — no behavior/correctness impact`) instead of editing.
-
-This call is load-bearing, so keep it honest and conservative: **cosmetic is a high bar — claim it only when you can show there's no impact; when unsure, treat it as substantive and fix it.** Give every push-back a concrete reason; never wave a batch away as "just nits".
-
 ## Fix completely, not minimally
 
 Each review feeds on the previous round's edits, so a sloppy patch becomes the next round's nit — you manufacture your own churn. Make each fix correct and final in one pass: spell paths and commands out in full (no ellipsis a reader can't run), and check it adds no new inconsistency and breaks no rendering. Edit as if there's no next round.
 
 ## Iterate until terminated
 
-After processing a round, decide the loop's fate from the round you just handled:
+After the base auto cycle finishes a round, loop back to **Assess** — never skip it. The round just resolved every open Copilot thread, so the next Assess sees a clean slate and requests a fresh review, letting Copilot re-examine the new state — **whether or not any fix was pushed this round**. A zero-fix round still re-requests so Copilot can confirm there's nothing new on the unchanged state.
 
-- **You applied a substantive fix** → re-request a fresh review (back to **Assess**, now a clean slate) so Copilot re-examines the new state. A later review still catches real regressions your own fix introduced — keep looping.
-- **The round warranted no change** — no comments, or only cosmetic ones you triaged and pushed back — → **terminate.** Copilot has reviewed the current state and surfaced nothing worth an edit; that is the end.
+**The only termination condition:** a freshly-requested review lands whose body contains the string `"generated no new comments"` and the unresolved-threads fetch comes back empty. Read that body with:
 
-So **termination is "a review of the current state warrants no change," not "Copilot fell silent."** You do not drive the bot to silence — one that keeps re-raising the same cosmetic nit never goes quiet, and chasing that silence means applying edits you don't believe in.
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | sort_by(.submitted_at) | last | .body"
+```
 
-This is **not** a license to quit early. The discipline that used to live in "drive to literal silence" now lives in the triage call: end on a no-change round only when every outstanding comment is provably non-substantive and individually reason-declined. The moment a round warrants any change, make it and keep looping. **When unsure whether a comment is substantive, it is — address it, don't terminate.**
+A round that only drained pre-existing threads (an in-flight or already-completed review) does NOT terminate the loop — it must come back around to a clean-slate request so Copilot confirms the final state. Until then, keep looping.
 
-Make this call **autonomously — never hand the stop decision to the user.** And don't hinge termination on a specific GitHub wording, so a reworded bot message can't trap the loop.
+Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and explicitly confirms it has nothing new to say". The pull toward "done" gets stronger each round; resist it. **Termination is observed Copilot state, not subjective completion.**
 
-**Anti-pattern — appeasing the bot:** applying a cosmetic nit you don't agree with just so the next review comes back clean. It lets the bot's style preferences overwrite your judgment and quietly degrades the artifact. Push it back or leave it; never edit to buy silence.
+(GitHub may someday reword the termination string. If that happens, the loop will continue running until a human intervenes — the cap on re-requests is "the user pressing stop", not a built-in count.)
 
 ## Red Flags — STOP
 
 - "I'll just `--add-reviewer` to kick it off" → Assess first; an auto-triggered review may already be in flight or done. A blind request duplicates it and orphans the first review's threads.
 - "I'll just drop a `/review` comment, it's faster" → that doesn't trigger the bot
 - "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
-- "I applied the fixes, we're done" → re-request first; Copilot must review the state your fixes produced — a later review catches regressions they introduced
-- "I'll just apply this nit so the next review comes back clean" → that's appeasing the bot; if it's cosmetic, push back — never edit to buy silence
-- "These are all just nits, we're done" → only after you've honestly triaged each as cosmetic and reason-declined it; when unsure, it's substantive — address it
-- "I'll ask the user whether to stop here" → don't; the loop terminates on your own substantive-vs-cosmetic judgment, autonomously
+- "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't confirmed termination
+- "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway; the confirmation is observed, not inferred
 - "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15
