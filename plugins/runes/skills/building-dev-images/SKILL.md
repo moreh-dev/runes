@@ -45,7 +45,7 @@ Two patterns trigger it:
 | Is the working tree dirty? | `git status --porcelain` (non-empty = dirty) |
 | Unique tag (timestamp) | `TAG=$(date +%Y%m%d-%H%M%S)` |
 | Unique tag (clean SHA only) | `[ -z "$(git status --porcelain)" ] && TAG=$(git rev-parse --short HEAD)` |
-| Dangling images on a node | `crictl images \| grep '<none>'` · `docker images -f dangling=true` |
+| Dangling images on a node | `crictl images` (dangling show as `<none>`) · `docker images -f dangling=true` |
 | Prune orphaned layers on a node | `crictl rmi --prune` · `docker image prune -f` |
 | Pin by digest | reference `image@sha256:<digest>` instead of `image:tag` |
 
