@@ -1,6 +1,6 @@
 ---
 name: building-dev-images
-description: Use when building, tagging, or deploying development or iteration container images to Kubernetes or a shared node — especially with imagePullPolicy: Always and reused or commit-SHA image tags — to avoid orphaned image layers filling node disk
+description: "Use when building, tagging, or deploying development or iteration container images to Kubernetes or a shared node — especially with imagePullPolicy: Always and reused or commit-SHA image tags — to avoid orphaned image layers filling node disk"
 ---
 
 # Building Dev Images
