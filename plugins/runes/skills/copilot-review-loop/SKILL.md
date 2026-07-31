@@ -9,18 +9,20 @@ description: Use when the user asks to run, automate, or iterate on GitHub Copil
 
 ## Assess before requesting — never blind-request
 
-Many repos auto-request Copilot the moment a PR opens, so by the time this skill runs a review may already be in flight, or already done with its comments sitting unresolved. Blindly running `--add-reviewer` in that state causes the two failures this skill exists to prevent:
+Many repos auto-request Copilot the moment a PR opens, so by the time this skill runs a review may already be in flight, already done with comments sitting unresolved, or already done having found nothing. Blindly running `--add-reviewer` in that state causes the failures this skill exists to prevent:
 
 - **Duplicate review** — you request a second review on top of the auto-triggered one, so Copilot reviews the same state twice.
 - **Skipped first review** — if you then process only the review *you* triggered, the earlier review's threads are never addressed or resolved.
+- **Redundant re-review** — the newest review already covers the current head and found nothing, so requesting again spends a review and its wait on a state Copilot already cleared.
 
-So every round begins by taking stock of the PR's Copilot state, and **requests a fresh review only on a clean slate** — nothing in flight, nothing open:
+So every round begins by taking stock of the PR's Copilot state, and **requests a fresh review only on a clean slate** — nothing in flight, nothing open, and the current head not yet cleared:
 
 | State | Signal | Action |
 |---|---|---|
 | Review in flight | Copilot appears in `requested_reviewers` (hasn't submitted yet) | **Wait** for it to land — do NOT re-request |
 | Open threads exist | Unresolved Copilot review threads on the PR | **Process** them first — do NOT request |
-| Clean slate | neither of the above | **Request** a fresh review, then wait |
+| Confirmed clean | Newest Copilot review's `commit_id` is the PR head SHA and that review posted zero inline comments | **Terminate** — Copilot has seen this exact state and had nothing to say |
+| Clean slate | none of the above | **Request** a fresh review, then wait |
 
 The work unit each round is **every unresolved Copilot thread**, not a single review's snapshot — that is what guarantees an auto-triggered review's comments get addressed instead of skipped.
 
@@ -38,11 +40,16 @@ gh pr edit {pr} --add-reviewer @copilot
 
 If such a comment was already posted by mistake, leave it in place and surface it to the user for manual cleanup — do not auto-delete via the API. The delete call is irreversible and trivially misfires on the wrong comment ID (the endpoint deletes any issue/PR comment by numeric ID, with no scope guard for "stray Copilot triggers"). The reviewer surface is the only reliable trigger.
 
-## Assess, wait, then fetch
+## Assess, terminate, wait, then fetch
 
 ```bash
 COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
 COPILOT_THREAD='select((.isResolved | not) and ((.comments.nodes[0].author.login // "") | ascii_downcase | contains("copilot")))'
+
+copilot_reviews() {
+  gh api --paginate repos/{owner}/{repo}/pulls/{pr}/reviews \
+    --jq ".[] | $COPILOT_BOT | [.submitted_at, (.id | tostring), .commit_id] | @tsv"
+}
 
 # --- Assess BEFORE requesting ---
 pending=$(gh api repos/{owner}/{repo}/pulls/{pr} \
@@ -53,27 +60,35 @@ unresolved=$(gh api graphql -f query='
       isResolved comments(first:1){ nodes{ author{ login } } } } } } } }' \
   -F owner={owner} -F repo={repo} -F pr={pr} \
   --jq "[.data.repository.pullRequest.reviewThreads.nodes[] | $COPILOT_THREAD] | length")
-start=$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | length")
+head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr} --jq '.head.sha')
+latest=$(copilot_reviews | sort | tail -1)
+latest_id=$(printf '%s' "$latest" | cut -f2)
+latest_sha=$(printf '%s' "$latest" | cut -f3)
+latest_inline=$([ -n "$latest_id" ] \
+  && gh api repos/{owner}/{repo}/pulls/{pr}/reviews/"$latest_id"/comments --jq 'length' || echo -1)
 
-# --- Request only on a clean slate ---
+# --- Terminate, process, or request ---
 if [ "${pending:-0}" -gt 0 ]; then
   wait_for_review=1                          # review in flight (e.g. auto-triggered) → wait, don't re-request
 elif [ "${unresolved:-0}" -gt 0 ]; then
   wait_for_review=0                          # completed review left open threads → process them now
+elif [ "$latest_sha" = "$head_sha" ] && [ "${latest_inline:-1}" -eq 0 ]; then
+  echo "confirmed clean: review $latest_id covers $head_sha with zero comments — loop done"
+  exit 0
 else
-  gh pr edit {pr} --add-reviewer @copilot    # nothing in flight, nothing open → request fresh
+  gh pr edit {pr} --add-reviewer @copilot    # head uncleared, nothing in flight or open → request fresh
   wait_for_review=1
 fi
 
 # --- Wait for the in-flight review to land (cap 20 min = 40 × 30s) ---
 if [ "$wait_for_review" -eq 1 ]; then
   for _ in $(seq 1 40); do
-    cur=$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews --jq "[.[] | $COPILOT_BOT] | length")
-    [ "${cur:-0}" -gt "${start:-0}" ] && break
+    cur_id=$(copilot_reviews | sort | tail -1 | cut -f2)
+    [ "${cur_id:-$latest_id}" != "$latest_id" ] && break
     sleep 30
   done
   # cap elapsed without the review landing → halt, don't fetch on stale state
-  [ "${cur:-0}" -gt "${start:-0}" ] || { echo "no Copilot review landed within 20 min — halt and report" >&2; exit 1; }
+  [ "${cur_id:-$latest_id}" != "$latest_id" ] || { echo "no Copilot review landed within 20 min — halt and report" >&2; exit 1; }
 fi
 
 # --- Fetch unresolved Copilot threads, up to the first 100 (the round's work unit) ---
@@ -114,26 +129,22 @@ Each review feeds on the previous round's edits, so a sloppy patch becomes the n
 
 ## Iterate until terminated
 
-After the base auto cycle finishes a round, loop back to **Assess** — never skip it. The round just resolved every open Copilot thread, so the next Assess sees a clean slate and requests a fresh review, letting Copilot re-examine the new state — **whether or not any fix was pushed this round**. A zero-fix round still re-requests so Copilot can confirm there's nothing new on the unchanged state.
+After the base auto cycle finishes a round, loop back to **Assess** — never skip it. Assess is the *only* place termination is decided, so the loop is always `Assess → (terminate | wait | process) → Assess`. A freshly-landed clean review leaves the thread fetch empty; the round does nothing and the next Assess terminates on it — don't bolt a second termination check onto the wait loop.
 
-**The only termination condition:** a freshly-requested review lands whose body contains the string `"generated no new comments"` and the unresolved-threads fetch comes back empty. Read that body with:
+**The only termination condition** is the `Confirmed clean` row: the newest Copilot review's `commit_id` is the PR head SHA, that review posted zero inline comments, and no unresolved Copilot threads remain. **Never the review body's prose** — its wording tracks review order, not content: a PR's first review says `generated no comments` and later ones say `generated no new comments`, so a string match terminates or loops on how many reviews came before.
 
-```bash
-gh api repos/{owner}/{repo}/pulls/{pr}/reviews \
-  --jq '[.[] | select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))] | sort_by(.submitted_at) | last | .body'
-```
+Anything short of all three re-requests. A round that only drained pre-existing threads has not cleared the current head, and neither has a review that predates the last push — so a zero-fix round still re-requests, letting Copilot confirm the unchanged state itself.
 
-A round that only drained pre-existing threads (an in-flight or already-completed review) does NOT terminate the loop — it must come back around to a clean-slate request so Copilot confirms the final state. Until then, keep looping.
+Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and confirms it has nothing to say". The pull toward "done" gets stronger each round; resist it. **Termination is observed Copilot state, not subjective completion.**
 
-Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and explicitly confirms it has nothing new to say". The pull toward "done" gets stronger each round; resist it. **Termination is observed Copilot state, not subjective completion.**
-
-(GitHub may someday reword the termination string. If that happens, the loop will continue running until a human intervenes — the cap on re-requests is "the user pressing stop", not a built-in count.)
+(The cap on re-requests is "the user pressing stop", not a built-in count.)
 
 ## Red Flags — STOP
 
-- "I'll just `--add-reviewer` to kick it off" → Assess first; an auto-triggered review may already be in flight or done. A blind request duplicates it and orphans the first review's threads.
+- "I'll just `--add-reviewer` to kick it off" → Assess first; an auto-triggered review may be in flight, done with open threads, or done having cleared this head — a blind request duplicates it, orphans its threads, or re-reviews a state that needed nothing.
 - "I'll just drop a `/review` comment, it's faster" → that doesn't trigger the bot
 - "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
-- "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't confirmed termination
+- "The review summary says it found nothing — that's my termination signal" → read the review's comment count and `commit_id`, not its prose; the wording differs between a first review and a later one, and it is not a contract
+- "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't cleared the head you just pushed
 - "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway; the confirmation is observed, not inferred
 - "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15
