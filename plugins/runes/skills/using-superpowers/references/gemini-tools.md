@@ -14,21 +14,21 @@ Skills use Claude Code tool names. When you encounter these in a skill, use your
 | `Skill` tool (invoke a skill) | `activate_skill` |
 | `WebSearch` | `google_web_search` |
 | `WebFetch` | `web_fetch` |
-| `Task` tool (dispatch subagent) | `@agent-name` (see [Subagent support](#subagent-support)) |
+| `Agent` tool (dispatch subagent) | `@agent-name` (see [Subagent support](#subagent-support)) |
 
 ## Subagent support
 
 Gemini CLI supports subagents natively via the `@` syntax. Use the built-in `@generalist` agent to dispatch any task — it has access to all tools and follows the prompt you provide.
 
-When a skill says to dispatch a named agent type, use `@generalist` with the full prompt from the skill's prompt template:
+When a skill says to dispatch a subagent with one of its prompt templates, use `@generalist` with the full filled-in prompt:
 
 | Skill instruction | Gemini CLI equivalent |
 |-------------------|----------------------|
-| `Task tool (superpowers:implementer)` | `@generalist` with the filled `implementer-prompt.md` template |
-| `Task tool (superpowers:spec-reviewer)` | `@generalist` with the filled `spec-reviewer-prompt.md` template |
-| `Task tool (superpowers:code-reviewer)` | `@code-reviewer` (bundled agent) or `@generalist` with the filled review prompt |
-| `Task tool (superpowers:code-quality-reviewer)` | `@generalist` with the filled `code-quality-reviewer-prompt.md` template |
-| `Task tool (general-purpose)` with inline prompt | `@generalist` with your inline prompt |
+| Dispatch with `implementer-prompt.md` | `@generalist` with the filled template |
+| Dispatch with `spec-reviewer-prompt.md` | `@generalist` with the filled template |
+| Dispatch with `code-reviewer.md` | `@code-reviewer` (bundled agent) or `@generalist` with the filled template |
+| Dispatch with `code-quality-reviewer-prompt.md` | `@generalist` with the filled template |
+| `Agent tool (general-purpose)` with inline prompt | `@generalist` with your inline prompt |
 
 ### Prompt filling
 

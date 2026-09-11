@@ -65,12 +65,21 @@ Each agent gets:
 
 ### 3. Dispatch in Parallel
 
-```typescript
-// In Claude Code / AI environment
-Task("Fix agent-tool-abort.test.ts failures")
-Task("Fix batch-completion-behavior.test.ts failures")
-Task("Fix tool-approval-race-conditions.test.ts failures")
-// All three run concurrently
+Issue all the dispatches in a **single message** — that is what makes them run
+concurrently. Separate messages serialize them.
+
+```text
+Agent(subagent_type: "general-purpose",
+      description: "Fix abort test failures",
+      prompt: <focused prompt for agent-tool-abort.test.ts>)
+
+Agent(subagent_type: "general-purpose",
+      description: "Fix batch completion failures",
+      prompt: <focused prompt for batch-completion-behavior.test.ts>)
+
+Agent(subagent_type: "general-purpose",
+      description: "Fix approval race failures",
+      prompt: <focused prompt for tool-approval-race-conditions.test.ts>)
 ```
 
 ### 4. Review and Integrate
