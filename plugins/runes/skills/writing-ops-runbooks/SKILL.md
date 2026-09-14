@@ -1,13 +1,14 @@
 ---
-name: confluence-writing
-description: Use when writing or updating a Confluence page, wiki runbook, or internal ops document — including "위키에 정리해줘", "이 문서 업데이트", "문서로 남겨줘" — and when an existing page has grown long, stale, or hard to act on.
+name: writing-ops-runbooks
+description: Use when writing or updating an ops runbook — a wiki page someone opens mid-task to deploy, verify, or recover (배포 방법, 접속 방법, 장애 대응, 재설치 절차). Also when such a page has grown long, stale, or buries the steps under background. Not for meeting notes, design docs, or proposals.
 ---
 
-# Confluence Writing
+
+# Writing Ops Runbooks
 
 ## Overview
 
-위키 문서는 읽히려고 있는 게 아니라 **쓰이려고** 있다. 독자는 문제를 안고 페이지를 열고, 답을 찾으면 닫는다.
+런북은 읽히려고 있는 게 아니라 **쓰이려고** 있다. 독자는 문제를 안고 페이지를 열고, 답을 찾으면 닫는다.
 
 **핵심 원칙: 문서를 주제가 아니라 독자의 행동 순서로 배치한다.**
 
@@ -15,11 +16,9 @@ description: Use when writing or updating a Confluence page, wiki runbook, or in
 
 ## When to Use
 
-- Confluence 페이지를 새로 쓰거나 기존 페이지를 고칠 때
-- 런북·배포 절차·장애 대응 문서
-- 페이지가 길어져서 "여기 뭐가 있었더라" 상태일 때
+**대상은 하나다 — 사람이 작업 도중에 열어서 보는 문서.** 배포 방법, 접속 방법, 장애 대응, 재설치 절차.
 
-**When NOT to use:** 코드 주석, 커밋 메시지, PR 본문. 이들은 배경을 담는 자리고 위키는 아니다.
+**When NOT to use:** 회의록·설계 문서·제안서(시간순이 아니라 논리순으로 읽힌다), 코드 주석·커밋·PR 본문(배경을 담는 자리다).
 
 ## 절 배치 — 독자의 시간순
 
