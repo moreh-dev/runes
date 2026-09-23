@@ -28,3 +28,17 @@ https://creativecommons.org/licenses/by/3.0/
 
 The bundled SKILL.md summary and `references/` guides are adapted/distilled from the
 originals, not verbatim reproductions.
+
+The `fluent-korean` output style in `plugins/runes/output-styles/fluent-korean.md`
+was copied from `snflkd/fluent-korean`:
+https://github.com/snflkd/fluent-korean
+
+Output style copied from upstream commit:
+ce8683f0eba8cddb91de4dcd151425ff73e60498
+
+The only modification is the added `force-for-plugin: true` frontmatter field,
+which applies the style automatically whenever runes is enabled.
+
+Original fluent-korean material:
+Copyright (c) 2026 snflkd
+Licensed under the MIT License. See `third_party/fluent-korean/LICENSE`.
