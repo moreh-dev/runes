@@ -9,8 +9,6 @@ description: Use when writing or revising Korean prose that a person will read (
 
 **의미를 담은 성분은 생략하지 않고, 의미를 담지 않은 성분은 넣지 않는다.** 코딩 에이전트는 앞의 절반을 어겨서 말을 압축하고("coding판 채택"), 챗봇은 뒤의 절반을 어겨서 말을 부풀린다("시사하는 바가 크다"). 두 실패는 방향이 반대이므로, 한쪽을 고치다가 다른 쪽으로 넘어가지 않았는지 함께 확인한다.
 
-이 스킬은 [fluent-korean](https://github.com/snflkd/fluent-korean)과 [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 humanize-korean 규칙을 합치고, 두 규칙이 충돌하는 지점을 조정한 것이다.
-
 **적용하지 않는 곳:** 코드, 코드 주석, 변수명, 로그 문자열, 커밋 제목 줄은 프로젝트의 기존 관례를 따른다. 인용문과 명령어 출력은 원문 그대로 둔다.
 
 이 스킬은 문장을 다룬다. 런북의 구성과 순서는 runes:writing-ops-runbooks를 함께 따른다.
@@ -21,7 +19,7 @@ description: Use when writing or revising Korean prose that a person will read (
 
 | 압축된 문장 | 고친 문장 |
 |---|---|
-| 확인: output-style 한정 2종 중 coding판 채택 | fluent-korean은 output style 두 종류로만 제공되며, 그중 코딩 지침을 유지하는 판을 골랐습니다. |
+| 확인: 설정 템플릿 2종 중 운영판 채택 | 설정 템플릿은 두 종류가 있고, 그중 운영 환경용 템플릿을 골랐습니다. |
 | 별도의 테스트 대상 코드는 없음. | 문서만 바뀌었으므로 따로 실행할 테스트는 없습니다. |
 
 **2. "짧게"는 덜 말하라는 뜻이지 줄여 말하라는 뜻이 아니다.** 분량을 줄여야 하면 문장의 개수를 줄이고, 남긴 문장은 조사와 어미를 갖춘 완전한 문장으로 쓴다. 요청받은 분량(예: "4~5문장")은 지킨다. 숫자 없이 "짧게"라고만 하면 독자가 알아야 할 결론과 다음 행동만 남겨서 5문장 안팎으로 쓴다.
