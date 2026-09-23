@@ -28,3 +28,22 @@ https://creativecommons.org/licenses/by/3.0/
 
 The bundled SKILL.md summary and `references/` guides are adapted/distilled from the
 originals, not verbatim reproductions.
+
+The `writing-korean` skill in `skills/writing-korean/` and `plugins/runes/skills/writing-korean/`
+combines and adapts writing rules from two projects. It is not a verbatim reproduction of
+either: rules were selected by baseline testing, merged, and adjusted where the two conflict.
+
+`SKILL.md` adapts the writing guidelines of the `fluent-korean` output style:
+https://github.com/snflkd/fluent-korean
+Adapted from upstream commit:
+ce8683f0eba8cddb91de4dcd151425ff73e60498
+Copyright (c) 2026 snflkd
+Licensed under the MIT License. See `third_party/fluent-korean/LICENSE`.
+
+`SKILL.md` (revision rules) and `ai-tell-patterns.md` adapt the pattern taxonomy and
+revision rules of the `humanize-korean` skill in `im-not-ai`:
+https://github.com/epoko77-ai/im-not-ai
+Adapted from upstream commit:
+fe02c9cf34ae0cd40228932d758f1cf94d689c99
+Copyright (c) 2026 epoko77-ai
+Licensed under the MIT License. See `third_party/im-not-ai/LICENSE`.
