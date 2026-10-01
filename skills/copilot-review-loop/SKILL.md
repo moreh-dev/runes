@@ -9,7 +9,7 @@ description: Use when the user asks to run, automate, or iterate on GitHub Copil
 
 ## Assess before requesting — never blind-request
 
-Many repos auto-request Copilot the moment a PR opens, so by the time this skill runs a review may already be in flight, already done with comments sitting unresolved, or already done having found nothing. Blindly running `--add-reviewer` in that state causes the failures this skill exists to prevent:
+Many repos auto-request Copilot the moment a PR opens (a ruleset's `copilot_code_review` rule, which covers only PRs targeting the default branch and may skip drafts), so by the time this skill runs a review may already be in flight, already done with comments sitting unresolved, or already done having found nothing. Blindly requesting in that state causes the failures this skill exists to prevent:
 
 - **Duplicate review** — you request a second review on top of the auto-triggered one, so Copilot reviews the same state twice.
 - **Skipped first review** — if you then process only the review *you* triggered, the earlier review's threads are never addressed or resolved.
@@ -19,7 +19,7 @@ So every round begins by taking stock of the PR's Copilot state, and **requests 
 
 | State | Signal | Action |
 |---|---|---|
-| Review in flight | Copilot appears in `requested_reviewers` (hasn't submitted yet) | **Wait** for it to land — do NOT re-request |
+| Review in flight | The newest Copilot `review_requested` event in the issue timeline is newer than the newest Copilot review | **Wait** for it to land — do NOT re-request |
 | Open threads exist | Unresolved Copilot review threads on the PR | **Process** them first — do NOT request |
 | Confirmed clean | Newest Copilot review's `commit_id` is the PR head SHA and that review posted zero inline comments | **Terminate** — Copilot has seen this exact state and had nothing to say |
 | Clean slate | none of the above | **Request** a fresh review, then wait |
@@ -28,11 +28,25 @@ The work unit each round is **every unresolved Copilot thread**, not a single re
 
 ## Trigger via reviewer, never via comment
 
-When the Assess step calls for a fresh review:
+When the Assess step calls for a fresh review, request it through REST with the bot's login:
 
 ```
-gh pr edit {pr} --add-reviewer @copilot
+gh api --method POST repos/{owner}/{repo}/pulls/{pr}/requested_reviewers \
+  -f 'reviewers[]=copilot-pull-request-reviewer[bot]'
 ```
+
+Then confirm it registered: a `review_requested` event for Copilot appears in the issue timeline within seconds.
+
+```
+gh api --paginate repos/{owner}/{repo}/issues/{pr}/timeline \
+  --jq '.[] | select(.event=="review_requested") | [.created_at, (.requested_reviewer.login // "?")] | @tsv'
+```
+
+No new event means nothing was requested; do not wait on it. These look like success and are not:
+- `reviewers[]=Copilot` returns 200 and silently requests nothing.
+- `gh pr edit {pr} --add-reviewer @copilot` can fail with `Projects (classic) is being deprecated … (repository.pullRequest.projectCards)` and change nothing.
+- The PR's `requested_reviewers` does not list Copilot even after a request registers, so it can neither confirm a request nor show one in flight.
+- The event's actor is the token's owner, so an event carrying the user's login does not mean they clicked in the UI.
 
 **Prohibited** (silently litters the PR; does NOT trigger the bot):
 - `gh pr comment {pr} --body "/review"`
@@ -52,8 +66,9 @@ copilot_reviews() {
 }
 
 # --- Assess BEFORE requesting ---
-pending=$(gh api repos/{owner}/{repo}/pulls/{pr} \
-  --jq '[.requested_reviewers[]? | select(.login | ascii_downcase | contains("copilot"))] | length')
+last_request=$(gh api --paginate repos/{owner}/{repo}/issues/{pr}/timeline \
+  --jq '.[] | select(.event=="review_requested" and ((.requested_reviewer.login // "") | ascii_downcase | contains("copilot"))) | .created_at' \
+  | sort | tail -1)
 unresolved=$(gh api graphql -f query='
   query($owner:String!,$repo:String!,$pr:Int!){ repository(owner:$owner,name:$repo){
     pullRequest(number:$pr){ reviewThreads(first:100){ nodes{
@@ -68,7 +83,8 @@ latest_inline=$([ -n "$latest_id" ] \
   && gh api repos/{owner}/{repo}/pulls/{pr}/reviews/"$latest_id"/comments --jq 'length' || echo -1)
 
 # --- Terminate, process, or request ---
-if [ "${pending:-0}" -gt 0 ]; then
+latest_at=$(printf '%s' "$latest" | cut -f1)
+if [ -n "$last_request" ] && [[ "$last_request" > "${latest_at:-}" ]]; then
   wait_for_review=1                          # review in flight (e.g. auto-triggered) → wait, don't re-request
 elif [ "${unresolved:-0}" -gt 0 ]; then
   wait_for_review=0                          # completed review left open threads → process them now
@@ -76,8 +92,9 @@ elif [ "$latest_sha" = "$head_sha" ] && [ "${latest_inline:-1}" -eq 0 ]; then
   echo "confirmed clean: review $latest_id covers $head_sha with zero comments — loop done"
   exit 0
 else
-  gh pr edit {pr} --add-reviewer @copilot    # head uncleared, nothing in flight or open → request fresh
-  wait_for_review=1
+  gh api --method POST repos/{owner}/{repo}/pulls/{pr}/requested_reviewers \
+    -f 'reviewers[]=copilot-pull-request-reviewer[bot]' >/dev/null   # head uncleared, nothing in flight or open → request fresh
+  wait_for_review=1                          # check the timeline event before trusting this wait
 fi
 
 # --- Wait for the in-flight review to land (cap 20 min = 40 × 30s) ---
@@ -141,7 +158,8 @@ Round-N's contract is not "respond to round-N's comments" — it is "iterate unt
 
 ## Red Flags — STOP
 
-- "I'll just `--add-reviewer` to kick it off" → Assess first; an auto-triggered review may be in flight, done with open threads, or done having cleared this head — a blind request duplicates it, orphans its threads, or re-reviews a state that needed nothing.
+- "The request returned 200, so Copilot is requested" → read the issue timeline; `reviewers[]=Copilot` and a failed `gh pr edit` both look fine and request nothing
+- "I'll just request a review to kick it off" → Assess first; an auto-triggered review may be in flight, done with open threads, or done having cleared this head — a blind request duplicates it, orphans its threads, or re-reviews a state that needed nothing.
 - "I'll just drop a `/review` comment, it's faster" → that doesn't trigger the bot
 - "All prior replies have a SHA, I'll add one to this push-back for consistency" → that misleads the reader
 - "The review summary says it found nothing — that's my termination signal" → read the review's comment count and `commit_id`, not its prose; the wording differs between a first review and a later one, and it is not a contract
