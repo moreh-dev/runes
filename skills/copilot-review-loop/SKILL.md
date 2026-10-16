@@ -21,8 +21,25 @@ So every round begins by taking stock of the PR's Copilot state, and **requests 
 |---|---|---|
 | Review in flight | The newest Copilot `review_requested` event in the issue timeline is newer than the newest Copilot review | **Wait** for it to land — do NOT re-request |
 | Open threads exist | Unresolved Copilot review threads on the PR | **Process** them first — do NOT request |
+| Review failed | Newest Copilot review posted zero inline comments and its body starts with `Copilot was unable to review` | **Halt and report** the body's reason — Copilot never reviewed this state |
 | Confirmed clean | Newest Copilot review's `commit_id` is the PR head SHA and that review posted zero inline comments | **Terminate** — Copilot has seen this exact state and had nothing to say |
+| Out of quota | Before requesting: the requester's premium-request quota is exhausted (see below) | **Halt and report** with the reset date — do NOT request |
 | Clean slate | none of the above | **Request** a fresh review, then wait |
+
+## Copilot can fail to review — detect it, never read it as clean
+
+Copilot code review spends the **requester's** premium requests. When they run out, Copilot still posts a review: state `COMMENTED`, `commit_id` on the head, zero inline comments, and the body `Copilot was unable to review this pull request because the user who requested the review has reached their quota limit.` Judged by comment count and SHA alone, that is indistinguishable from `Confirmed clean` — so check for the failure first. This is a match on an error marker, not on a "clean" wording; the clean decision still never reads the body.
+
+Before requesting, check the token owner's quota so you don't spend a round on a request that cannot succeed:
+
+```
+gh api /copilot_internal/user --jq '{quota: .quota_snapshots.premium_interactions
+  | {has_quota, overage_permitted, credits_used}, reset: .quota_reset_date_utc}'
+```
+
+`has_quota == false` with `overage_permitted == false` means a request will fail. Ignore `unlimited` and `percent_remaining` — they read `true` and `100.0` in the same snapshot that reports no quota. The endpoint is undocumented (Copilot's IDE plugins use it), so treat it as advisory: if the call fails or the field is missing, request anyway and rely on the post-landing body check. That check stays mandatory regardless — an auto-triggered review spends someone else's quota, which this endpoint cannot see.
+
+On either signal, halt and tell the user: the reason from the body, and the reset date if known. Do not re-request — the same requester gets the same failure.
 
 The work unit each round is **every unresolved Copilot thread**, not a single review's snapshot — that is what guarantees an auto-triggered review's comments get addressed instead of skipped.
 
@@ -59,10 +76,20 @@ If such a comment was already posted by mistake, leave it in place and surface i
 ```bash
 COPILOT_BOT='select(.user.type == "Bot" and (.user.login | ascii_downcase | contains("copilot")))'
 COPILOT_THREAD='select((.isResolved | not) and ((.comments.nodes[0].author.login // "") | ascii_downcase | contains("copilot")))'
+UNABLE='Copilot was unable to review'
 
 copilot_reviews() {
   gh api --paginate repos/{owner}/{repo}/pulls/{pr}/reviews \
     --jq ".[] | $COPILOT_BOT | [.submitted_at, (.id | tostring), .commit_id] | @tsv"
+}
+
+# A landed review that is a failure notice, not a review → halt with its reason
+review_failed() {
+  local body
+  body=$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews/"$1" --jq '.body')
+  [ "$(gh api repos/{owner}/{repo}/pulls/{pr}/reviews/"$1"/comments --jq 'length')" -eq 0 ] \
+    && [[ "$body" == "$UNABLE"* ]] && { echo "Copilot review failed — halt and report: $body" >&2; return 0; }
+  return 1
 }
 
 # --- Assess BEFORE requesting ---
@@ -88,10 +115,18 @@ if [ -n "$last_request" ] && [[ "$last_request" > "${latest_at:-}" ]]; then
   wait_for_review=1                          # review in flight (e.g. auto-triggered) → wait, don't re-request
 elif [ "${unresolved:-0}" -gt 0 ]; then
   wait_for_review=0                          # completed review left open threads → process them now
+elif [ -n "$latest_id" ] && review_failed "$latest_id"; then
+  exit 1                                     # newest review is a failure notice (e.g. quota) — never "clean"
 elif [ "$latest_sha" = "$head_sha" ] && [ "${latest_inline:-1}" -eq 0 ]; then
   echo "confirmed clean: review $latest_id covers $head_sha with zero comments — loop done"
   exit 0
 else
+  quota=$(gh api /copilot_internal/user \
+    --jq '.quota_snapshots.premium_interactions | "\(.has_quota) \(.overage_permitted)"' 2>/dev/null)
+  if [ "$quota" = "false false" ]; then      # advisory: unknown/failed lookup falls through to request
+    echo "Copilot premium-request quota exhausted until $(gh api /copilot_internal/user --jq .quota_reset_date_utc) — halt and report" >&2
+    exit 1
+  fi
   gh api --method POST repos/{owner}/{repo}/pulls/{pr}/requested_reviewers \
     -f 'reviewers[]=copilot-pull-request-reviewer[bot]' >/dev/null   # head uncleared, nothing in flight or open → request fresh
   wait_for_review=1                          # check the timeline event before trusting this wait
@@ -106,6 +141,7 @@ if [ "$wait_for_review" -eq 1 ]; then
   done
   # cap elapsed without the review landing → halt, don't fetch on stale state
   [ "${cur_id:-$latest_id}" != "$latest_id" ] || { echo "no Copilot review landed within 20 min — halt and report" >&2; exit 1; }
+  review_failed "$cur_id" && exit 1          # landed, but as a failure notice — don't let next Assess call it clean
 fi
 
 # --- Fetch unresolved Copilot threads, up to the first 100 (the round's work unit) ---
@@ -148,7 +184,7 @@ Each review feeds on the previous round's edits, so a sloppy patch becomes the n
 
 After the base auto cycle finishes a round, loop back to **Assess** — never skip it. Assess is the *only* place termination is decided, so the loop is always `Assess → (terminate | wait | process) → Assess`. A freshly-landed clean review leaves the thread fetch empty; the round does nothing and the next Assess terminates on it — don't bolt a second termination check onto the wait loop.
 
-**The only termination condition** is the `Confirmed clean` row: the newest Copilot review's `commit_id` is the PR head SHA, that review posted zero inline comments, and no unresolved Copilot threads remain. **Never the review body's prose** — its wording tracks review order, not content: a PR's first review says `generated no comments` and later ones say `generated no new comments`, so a string match terminates or loops on how many reviews came before.
+**The only termination condition** is the `Confirmed clean` row: the newest Copilot review's `commit_id` is the PR head SHA, that review posted zero inline comments, it is not a `Copilot was unable to review` notice, and no unresolved Copilot threads remain. (A failure notice or exhausted quota *halts* the loop with an error — that is not termination; the head is still unreviewed.) **Never the review body's prose** — its wording tracks review order, not content: a PR's first review says `generated no comments` and later ones say `generated no new comments`, so a string match terminates or loops on how many reviews came before.
 
 Anything short of all three re-requests. A round that only drained pre-existing threads has not cleared the current head, and neither has a review that predates the last push — so a zero-fix round still re-requests, letting Copilot confirm the unchanged state itself.
 
@@ -165,4 +201,6 @@ Round-N's contract is not "respond to round-N's comments" — it is "iterate unt
 - "The review summary says it found nothing — that's my termination signal" → read the review's comment count and `commit_id`, not its prose; the wording differs between a first review and a later one, and it is not a contract
 - "I addressed every comment Copilot posted, we're done" → re-request anyway; Copilot hasn't cleared the head you just pushed
 - "Every comment was a push-back this round, nothing changed — surely we're done" → re-request anyway; the confirmation is observed, not inferred
+- "Zero comments on the head SHA — done" → first rule out a `Copilot was unable to review` notice; a quota failure has exactly that shape
+- "Quota failed, I'll just re-request" → the same requester fails the same way; halt and report the reset date
 - "I'll just `sleep 600` and check back" → poll the reviews API; the review may land in 1 minute or 15
