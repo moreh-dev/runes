@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session
+description: Use when executing a written implementation plan with subagents available and mostly independent tasks
 ---
 
 # Subagent-Driven Development
@@ -19,27 +19,28 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
+    "Subagents available?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "executing-plans" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
 
     "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
+    "Tasks mostly independent?" -> "Subagents available?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
-    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Subagents available?" -> "subagent-driven-development" [label="yes"];
+    "Subagents available?" -> "executing-plans" [label="no"];
 }
 ```
 
-**vs. Executing Plans (parallel session):**
-- Same session (no context switch)
+**vs. Executing Plans (no subagents):**
 - Fresh subagent per task (no context pollution)
 - Two-stage review after each task: spec compliance first, then code quality
 - Faster iteration (no human-in-loop between tasks)
 
 ## The Process
+
+**Before the first task:** on `main` or `master`, use runes:using-git-worktrees to set up an isolated workspace, unless your human partner explicitly agreed to work on the current branch.
 
 ```dot
 digraph process {
@@ -271,4 +272,4 @@ Done!
 - **runes:test-driven-development** - Subagents follow TDD for each task
 
 **Alternative workflow:**
-- **runes:executing-plans** - Use for parallel session instead of same-session execution
+- **runes:executing-plans** - Use instead when subagents aren't available
