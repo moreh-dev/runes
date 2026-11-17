@@ -112,10 +112,10 @@ If something appears during tests but you don't know which test:
 Run the bisection script [find-polluter.sh](find-polluter.sh) from this skill's directory, with the project root as the working directory:
 
 ```bash
-<skill-dir>/find-polluter.sh '.git' './src/**/*.test.ts'
+<skill-dir>/find-polluter.sh '.git' 'src/**/*.test.ts'
 ```
 
-It runs `npm test` on each matching file one by one and stops at the first one that creates the path. The pattern goes to `find . -path`, so it must start with `./`.
+It runs `npm test` on each matching file one by one and stops at the first one that creates the path (exit 1). As in a shell glob, `**/` matches zero or more directories. If no file matches, or the path already exists before any test runs, it stops with exit 2 instead of reporting a clean run.
 
 ## Real Example: Empty projectDir
 
