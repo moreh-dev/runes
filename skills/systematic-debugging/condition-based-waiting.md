@@ -1,5 +1,16 @@
 # Condition-Based Waiting
 
+## Contents
+
+- [Overview](#overview)
+- [When to Use](#when-to-use)
+- [Core Pattern](#core-pattern)
+- [Quick Patterns](#quick-patterns)
+- [Implementation](#implementation)
+- [Common Mistakes](#common-mistakes)
+- [When Arbitrary Timeout IS Correct](#when-arbitrary-timeout-is-correct)
+- [Real-World Impact](#real-world-impact)
+
 ## Overview
 
 Flaky tests often guess at timing with arbitrary delays. This creates race conditions where tests pass on fast machines but fail under load or in CI.
