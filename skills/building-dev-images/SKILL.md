@@ -24,7 +24,7 @@ An image tag is a mutable pointer, not the image itself. When you push new conte
 
 ## Why Layers Orphan (the trap)
 
-Tag `myapp:dev` → digest A on the node. You rebuild, push new content to `myapp:dev` → digest B. The node pulls B; A's layers stay on disk but are now referenced by no tag. Repeat daily → dozens of orphaned image trees.
+Tag `myapp:dev` → digest A on the node. You rebuild, push new content to `myapp:dev` → digest B. The node pulls B; A's layers stay on disk but are now referenced by no tag. Repeat daily → orphaned layers from dozens of old builds.
 
 Two patterns trigger it:
 

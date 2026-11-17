@@ -10,7 +10,6 @@
 - [Real Example: Empty projectDir](#real-example-empty-projectdir)
 - [Key Principle](#key-principle)
 - [Stack Trace Tips](#stack-trace-tips)
-- [Real-World Impact](#real-world-impact)
 
 ## Overview
 
@@ -110,13 +109,13 @@ npm test 2>&1 | grep 'DEBUG git init'
 
 If something appears during tests but you don't know which test:
 
-Use the bisection script `find-polluter.sh` in this directory:
+Run the bisection script [find-polluter.sh](find-polluter.sh) from this skill's directory, with the project root as the working directory:
 
 ```bash
-./find-polluter.sh '.git' 'src/**/*.test.ts'
+<skill-dir>/find-polluter.sh '.git' './src/**/*.test.ts'
 ```
 
-Runs tests one-by-one, stops at first polluter. See script for usage.
+It runs `npm test` on each matching file one by one and stops at the first one that creates the path. The pattern goes to `find . -path`, so it must start with `./`.
 
 ## Real Example: Empty projectDir
 
@@ -171,11 +170,3 @@ digraph principle {
 **Before operation:** Log before the dangerous operation, not after it fails
 **Include context:** Directory, cwd, environment variables, timestamps
 **Capture stack:** `new Error().stack` shows complete call chain
-
-## Real-World Impact
-
-From debugging session (2025-10-03):
-- Found root cause through 5-level trace
-- Fixed at source (getter validation)
-- Added 4 layers of defense
-- 1847 tests passed, zero pollution

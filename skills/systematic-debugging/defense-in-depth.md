@@ -6,7 +6,7 @@
 - [Why Multiple Layers](#why-multiple-layers)
 - [The Four Layers](#the-four-layers)
 - [Applying the Pattern](#applying-the-pattern)
-- [Example from Session](#example-from-session)
+- [Worked Example: Empty projectDir](#worked-example-empty-projectdir)
 - [Key Insight](#key-insight)
 
 ## Overview
@@ -102,7 +102,7 @@ When you find a bug:
 3. **Add validation at each layer** - Entry, business, environment, debug
 4. **Test each layer** - Try to bypass layer 1, verify layer 2 catches it
 
-## Example from Session
+## Worked Example: Empty projectDir
 
 Bug: Empty `projectDir` caused `git init` in source code
 

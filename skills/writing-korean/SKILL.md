@@ -46,7 +46,7 @@ description: Use when writing or revising Korean prose that a person will read (
 
 ## 남의 글을 다듬을 때의 규칙
 
-**먼저 같은 폴더의 `ai-tell-patterns.md`를 읽는다.** 무엇을 고칠지는 이 목록으로 정한다.
+**먼저 [ai-tell-patterns.md](ai-tell-patterns.md)를 읽는다.** 무엇을 고칠지는 이 목록으로 정한다.
 
 **1. 뜻은 한 글자도 바꾸지 않는다.** 다듬는 사람이 가장 자주 넘는 선이 여기다.
 

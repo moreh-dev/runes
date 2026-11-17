@@ -10,7 +10,7 @@
 - [Anti-Pattern 2: Test-Only Methods in Production](#anti-pattern-2-test-only-methods-in-production)
 - [Anti-Pattern 3: Mocking Without Understanding](#anti-pattern-3-mocking-without-understanding)
 - [Anti-Pattern 4: Incomplete Mocks](#anti-pattern-4-incomplete-mocks)
-- [Anti-Pattern 5: Integration Tests as Afterthought](#anti-pattern-5-integration-tests-as-afterthought)
+- [Anti-Pattern 5: Tests as Afterthought](#anti-pattern-5-tests-as-afterthought)
 - [When Mocks Become Too Complex](#when-mocks-become-too-complex)
 - [TDD Prevents These Anti-Patterns](#tdd-prevents-these-anti-patterns)
 - [Quick Reference](#quick-reference)
@@ -240,7 +240,7 @@ BEFORE creating mock responses:
   If uncertain: Include all documented fields
 ```
 
-## Anti-Pattern 5: Integration Tests as Afterthought
+## Anti-Pattern 5: Tests as Afterthought
 
 **The violation:**
 ```

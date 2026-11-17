@@ -31,7 +31,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 **2. Dispatch code reviewer subagent:**
 
-Use Agent tool with `general-purpose` subagent_type, fill template at `code-reviewer.md`
+Use Agent tool with `general-purpose` subagent_type, fill template at [code-reviewer.md](code-reviewer.md)
 
 **Placeholders:**
 - `{DESCRIPTION}` - Brief summary of what you built
@@ -99,5 +99,3 @@ You: [Fix progress indicators]
 - Push back with technical reasoning
 - Show code/tests that prove it works
 - Request clarification
-
-See template at: [code-reviewer.md](code-reviewer.md)

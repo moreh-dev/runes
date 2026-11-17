@@ -17,7 +17,7 @@ Create focused git commits from the current working tree.
 2. Verify changed code complies with applicable agent instruction files before staging:
    - List every changed path that will be included, including modified, staged, deleted, renamed, and untracked files.
    - For each changed path, check for `AGENTS.md` and `CLAUDE.md` at the repository root and in every ancestor directory from the path's top-level directory down to the changed file's parent directory.
-   - Read every applicable instruction file found along that path and verify the changed code follows those instructions.
+   - Read every applicable agent instruction file found along that path and verify the changed code follows those instructions.
    - If an instruction conflict or compliance issue exists, fix it before continuing, or report the blocker instead of committing.
 3. Decide whether the changes are one logical commit or multiple independent commits. Split unrelated features, fixes, refactors, docs, config, and generated artifacts when they can stand alone.
 4. Do not commit files that likely contain secrets, credentials, private keys, tokens, or local-only environment values.
@@ -32,7 +32,7 @@ Create focused git commits from the current working tree.
    EOF
    ```
 
-7. After committing, report the commit hash and final `git status --short`.
+7. After committing, report each new commit hash and the final `git status --short`.
 
 ## Commit Message Rules
 
