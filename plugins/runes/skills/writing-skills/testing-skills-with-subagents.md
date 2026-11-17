@@ -2,6 +2,25 @@
 
 **Load this reference when:** creating or editing skills, before deployment, to verify they work under pressure and resist rationalization.
 
+## Contents
+
+- [Overview](#overview)
+- [When to Use](#when-to-use)
+- [Testing by Skill Type](#testing-by-skill-type)
+- [TDD Mapping for Skill Testing](#tdd-mapping-for-skill-testing)
+- [RED Phase: Baseline Testing (Watch It Fail)](#red-phase-baseline-testing-watch-it-fail)
+- [GREEN Phase: Write Minimal Skill (Make It Pass)](#green-phase-write-minimal-skill-make-it-pass)
+- [VERIFY GREEN: Pressure Testing](#verify-green-pressure-testing)
+- [REFACTOR Phase: Close Loopholes (Stay Green)](#refactor-phase-close-loopholes-stay-green)
+- [Meta-Testing (When GREEN Isn't Working)](#meta-testing-when-green-isnt-working)
+- [When Skill is Bulletproof](#when-skill-is-bulletproof)
+- [Example: TDD Skill Bulletproofing](#example-tdd-skill-bulletproofing)
+- [Testing Checklist (TDD for Skills)](#testing-checklist-tdd-for-skills)
+- [Common Mistakes (Same as TDD)](#common-mistakes-same-as-tdd)
+- [Quick Reference (TDD Cycle)](#quick-reference-tdd-cycle)
+- [The Bottom Line](#the-bottom-line)
+- [Real-World Impact](#real-world-impact)
+
 ## Overview
 
 **Testing skills is just TDD applied to process documentation.**
@@ -12,7 +31,7 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 **REQUIRED BACKGROUND:** You MUST understand runes:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
 
-**Complete worked example:** See examples/CLAUDE_MD_TESTING.md for a full test campaign testing CLAUDE.md documentation variants.
+**Complete worked example:** See [examples/CLAUDE_MD_TESTING.md](examples/CLAUDE_MD_TESTING.md) for a full test campaign testing CLAUDE.md documentation variants.
 
 ## When to Use
 
@@ -22,10 +41,59 @@ Test skills that:
 - Could be rationalized away ("just this once")
 - Contradict immediate goals (speed over quality)
 
-Don't test:
+Don't pressure-test (use the lighter tests in "Testing by Skill Type" instead):
 - Pure reference skills (API docs, syntax guides)
 - Skills without rules to violate
 - Skills agents have no incentive to bypass
+
+## Testing by Skill Type
+
+Different skill types need different test approaches:
+
+### Discipline-Enforcing Skills (rules/requirements)
+
+**Examples:** TDD, verification-before-completion, designing-before-coding
+
+**Test with:**
+- Academic questions: Do they understand the rules?
+- Pressure scenarios: Do they comply under stress?
+- Multiple pressures combined: time + sunk cost + exhaustion
+- Identify rationalizations and add explicit counters
+
+**Success criteria:** Agent follows rule under maximum pressure
+
+### Technique Skills (how-to guides)
+
+**Examples:** condition-based-waiting, root-cause-tracing, defensive-programming
+
+**Test with:**
+- Application scenarios: Can they apply the technique correctly?
+- Variation scenarios: Do they handle edge cases?
+- Missing information tests: Do instructions have gaps?
+
+**Success criteria:** Agent successfully applies technique to new scenario
+
+### Pattern Skills (mental models)
+
+**Examples:** reducing-complexity, information-hiding concepts
+
+**Test with:**
+- Recognition scenarios: Do they recognize when pattern applies?
+- Application scenarios: Can they use the mental model?
+- Counter-examples: Do they know when NOT to apply?
+
+**Success criteria:** Agent correctly identifies when/how to apply pattern
+
+### Reference Skills (documentation/APIs)
+
+**Examples:** API documentation, command references, library guides
+
+**Test with:**
+- Retrieval scenarios: Can they find the right information?
+- Application scenarios: Can they use what they found correctly?
+- Gap testing: Are common use cases covered?
+
+**Success criteria:** Agent finds and correctly applies reference information
 
 ## TDD Mapping for Skill Testing
 
@@ -139,7 +207,7 @@ Forces explicit choice.
 
 **Best tests combine 3+ pressures.**
 
-**Why this works:** See persuasion-principles.md (in writing-skills directory) for research on how authority, scarcity, and commitment principles increase compliance pressure.
+**Why this works:** See [persuasion-principles.md](persuasion-principles.md) for research on how authority, scarcity, and commitment principles increase compliance pressure.
 
 ### Key Elements of Good Scenarios
 
@@ -223,6 +291,14 @@ description: Use when you wrote code before tests, when tempted to test after, o
 ```
 
 Add symptoms of ABOUT to violate.
+
+### 5. Foundational Principle
+
+When agents argue "I'm following the spirit, not the letter", add near the top of the skill:
+
+```markdown
+**Violating the letter of the rules is violating the spirit of the rules.**
+```
 
 ### Re-verify After Refactoring
 
