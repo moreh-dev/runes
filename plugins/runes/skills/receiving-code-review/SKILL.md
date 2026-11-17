@@ -21,8 +21,9 @@ WHEN receiving code review feedback:
 3. VERIFY:    Check against codebase reality — cite paths/lines
 4. EVALUATE:  Technically sound for THIS codebase?
 5. EXPLAIN:   Surface intent, context, and reasoning per the Per-Comment Explanation template
-6. RESPOND:   Technical acknowledgment or reasoned pushback
-7. IMPLEMENT: One item at a time, test each
+6. DECIDE:    The user picks apply / reject / clarify for each comment. Don't reply or implement before they do
+7. RESPOND:   Technical acknowledgment or reasoned pushback
+8. IMPLEMENT: One item at a time, test each
 ```
 
 ## Forbidden Responses
@@ -31,6 +32,7 @@ WHEN receiving code review feedback:
 - "You're absolutely right!" (sycophantic)
 - "Great point!" / "Excellent feedback!" (performative)
 - "Let me implement that now" (before verification)
+- "Thanks for catching that!" / "Thanks for [anything]" / any gratitude expression (performative; state the fix instead)
 
 **INSTEAD:**
 - Restate the technical requirement
@@ -120,6 +122,8 @@ For each review comment, cover (in this order, skipping sections that genuinely 
 4. **Recommendation** — apply / reject / clarify, with the technical reason. Spell out the alternative if you reject.
 5. **Tradeoffs** — what each path costs (extra code, perf hit, churn, lost flexibility) when there is a real tradeoff to weigh.
 
+After explaining every comment, stop and wait for the user to choose apply / reject / clarify for each one. Your Recommendation is input to their decision, not the decision. Deciding alone is the job of runes:receiving-code-review-auto, and only when the user asked for that mode.
+
 Intent and Recommendation are mandatory in most cases; the others appear when they add signal. Length follows substance — a one-line typo fix or a single-sentence clarification request can drop the template structure entirely. Rule of thumb: if the only honest content of Intent and Recommendation would be a one-line echo of the comment itself, skip the structure.
 
 ## Implementation Order
@@ -161,11 +165,7 @@ When feedback IS correct:
 ✅ "Good catch - [specific issue]. Fixed in [location]."
 ✅ [Just fix it and show in the code]
 
-❌ "You're absolutely right!"
-❌ "Great point!"
-❌ "Thanks for catching that!"
-❌ "Thanks for [anything]"
-❌ ANY gratitude expression
+❌ Anything in Forbidden Responses, including any "Thanks"
 ```
 
 **Why no thanks:** Actions speak. Just fix it. The code itself shows you heard the feedback.

@@ -20,18 +20,25 @@ Not covered in runes:receiving-code-review because they apply only end-to-end:
 - **Precheck:** working tree must be clean — escalate if dirty.
 - **Commit:** one commit per applied thread, made immediately after the change. Conventional Commits, single scope. Pick the type by change kind — `fix` (bug), `refactor` (cleanup), `docs` (docs-only), `test` (test changes), `style` (formatting-only). Scope is the top-level directory of the primary modified file (e.g., `skills`, `cmd`, `api`).
 - **Push:** one push after the full loop. Never force-push.
+- **Order:** evaluate and commit each thread (in the Implementation Order of runes:receiving-code-review), push once, then post every reply and resolve threads. Replies cite commit SHAs, which only link to the fix once pushed. If the run halts before the push, no reply claims a fix the PR doesn't have yet.
 
-### When To Stop (Escalate)
+### Reject, Escalate, or Halt
 
-The *When To Push Back* list in runes:receiving-code-review applies as-is — every reason to push back on a single thread is also a reason to halt the auto loop and surface the thread to the user. In addition, escalate on these auto-specific conditions:
+Every thread ends as applied, rejected, clarify, or escalated. Only a halt stops the run.
 
-- Working tree dirty at start
-- Threads on the same hunk contradict each other
-- Pre-commit hook fails on something the auto loop cannot resolve mechanically
-- Fix would require destructive operations
-- Fix touches code well outside the PR scope
+- **Rejected:** a *When To Push Back* reason from runes:receiving-code-review that you can settle with technical evidence. Examples: the change breaks existing functionality, it violates YAGNI, it's incorrect for this stack, legacy or compatibility constraints apply, or the reviewer lacks context you can cite. Post the push-back reply, apply the Resolution Policy, and continue with the next thread.
+- **Escalated:** the thread needs a decision only the user can make. Don't change code or reply; leave the thread open, record it for the Final Report, and continue with the next thread.
+  - It conflicts with the user's architectural decisions, or asks for an architecture change
+  - Threads on the same hunk contradict each other
+  - The fix would require destructive operations
+  - The fix touches code well outside the PR scope
+- **Halt:** stop the whole run and report the current state to the user without further action.
+  - Working tree dirty at start
+  - Pre-commit hook fails on something the auto loop cannot resolve mechanically
+  - The push fails or is partly rejected. Post no replies.
+  - Mid-loop interruption, or any error not listed here
 
-Already-made commits stay; do not auto-revert. **On any failure not enumerated above — partial push rejection, mid-loop interruption, or an unrecognized error — halt and report the current state to the user without further action.**
+Already-made commits stay; do not auto-revert.
 
 ### Final Report
 
