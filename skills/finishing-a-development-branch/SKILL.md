@@ -41,10 +41,18 @@ Stop. Don't proceed to Step 2.
 
 **Determine workspace state before presenting options:**
 
+Run this from the workspace you are finishing:
+
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
 GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+echo "GIT_DIR=$GIT_DIR"
+echo "GIT_COMMON=$GIT_COMMON"
+echo "WORKTREE_PATH=$(git rev-parse --show-toplevel)"
+echo "MAIN_ROOT=$(git -C "$GIT_COMMON/.." rev-parse --show-toplevel)"
 ```
+
+**Record the four printed values.** Step 6 uses them. Options 1 and 4 move to the main repo before Step 6, so running detection again there always reports a normal repo. Shell variables also don't carry over between separate commands.
 
 This determines which menu to show and how cleanup works:
 
@@ -97,9 +105,8 @@ Which option?
 #### Option 1: Merge Locally
 
 ```bash
-# Get main repo root for CWD safety
-MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
-cd "$MAIN_ROOT"
+# Move to the main repo root recorded in Step 2, for CWD safety
+cd <MAIN_ROOT>
 
 # Merge first — verify success before removing anything
 git checkout <base-branch>
@@ -157,8 +164,7 @@ Wait for exact confirmation.
 
 If confirmed:
 ```bash
-MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
-cd "$MAIN_ROOT"
+cd <MAIN_ROOT>  # recorded in Step 2
 ```
 
 Then: Cleanup worktree (Step 6), then force-delete branch:
@@ -166,25 +172,32 @@ Then: Cleanup worktree (Step 6), then force-delete branch:
 git branch -D <feature-branch>
 ```
 
+#### Detached HEAD Options
+
+The workspace is externally managed, so none of these options clean it up or delete a branch.
+
+- **1. Push as new branch and create a PR:** Name the branch after the work, in short kebab-case, and push the commit to it. Then create the PR as in Option 2, adding `--head <new-branch> --base <base-branch>`.
+
+  ```bash
+  git push origin HEAD:refs/heads/<new-branch>
+  ```
+
+- **2. Keep as-is:** Report the current commit and the workspace path.
+- **3. Discard:** Ask for the typed confirmation as in Option 4, listing the commits that will be abandoned. Then report them. There is no branch to delete and no worktree to remove.
+
 ### Step 6: Cleanup Workspace
 
 **Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
 
-```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-WORKTREE_PATH=$(git rev-parse --show-toplevel)
-```
+**Use the values recorded in Step 2. Don't detect again here.** By now you are in the main repo, where detection always says "normal repo".
 
 **If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
 
-**If worktree path is under `.worktrees/` or `worktrees/`:** The git worktree fallback created this worktree — we own cleanup.
+**If `WORKTREE_PATH` is under `.worktrees/` or `worktrees/`:** The git worktree fallback created this worktree, so we own cleanup. Substitute the recorded paths:
 
 ```bash
-MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
-cd "$MAIN_ROOT"
-git worktree remove "$WORKTREE_PATH"
-git worktree prune  # Self-healing: clean up any stale registrations
+git -C <MAIN_ROOT> worktree remove <WORKTREE_PATH>
+git -C <MAIN_ROOT> worktree prune  # Self-healing: clean up any stale registrations
 ```
 
 **Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
@@ -211,6 +224,10 @@ git worktree prune  # Self-healing: clean up any stale registrations
 **Cleaning up worktree for Option 2**
 - **Problem:** Remove worktree user needs for PR iteration
 - **Fix:** Only cleanup for Options 1 and 4
+
+**Detecting the environment again in Step 6**
+- **Problem:** After Options 1 and 4 `cd` to the main repo, detection reports a normal repo, so the worktree is never removed and `git branch -d` fails with "used by worktree"
+- **Fix:** Use the values recorded in Step 2
 
 **Deleting branch before removing worktree**
 - **Problem:** `git branch -d` fails because worktree still references the branch
