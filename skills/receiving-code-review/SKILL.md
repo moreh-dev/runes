@@ -28,7 +28,7 @@ WHEN receiving code review feedback:
 ## Forbidden Responses
 
 **NEVER:**
-- "You're absolutely right!" (explicit CLAUDE.md violation)
+- "You're absolutely right!" (sycophantic)
 - "Great point!" / "Excellent feedback!" (performative)
 - "Let me implement that now" (before verification)
 
@@ -59,7 +59,7 @@ You understand 1,2,3,6. Unclear on 4,5.
 
 ## Source-Specific Handling
 
-### From the user
+### From the User
 - **Trusted** - implement after understanding
 - **Still ask** if scope unclear
 - **No performative agreement**
@@ -86,7 +86,7 @@ IF conflicts with the user's prior decisions:
 
 **The user's rule:** "External feedback - be skeptical, but check carefully"
 
-## Common false-positive categories from external reviewers
+## Common False-Positive Categories from External Reviewers
 
 These patterns recur often enough across external reviewers (human contractors, bots, AI reviewers) to be worth verifying *first* before treating any of them as correct:
 
@@ -213,10 +213,10 @@ Reviewer: "Remove legacy code"
 ✅ "Intent: drop the pre-iOS 13 branch in PhotoLoader.
     Context: the reviewer assumes we already require iOS 13. That's a
       correctness concern — dead code is risk surface and lies to readers.
-    Verification: Podfile platform :ios, '10.15' (Podfile:3); the legacy
+    Verification: Podfile platform :ios, '12.0' (Podfile:3); the legacy
       branch uses PHImageManager.requestImageForAsset which is the only
       API available pre-iOS 13 — newer requestImage(for:) requires 13+.
-    Recommendation: reject the removal. We still ship to 10.15, so the
+    Recommendation: reject the removal. We still ship to iOS 12, so the
       legacy branch is load-bearing. But the reviewer landed on something
       real: the legacy path uses the wrong bundle ID (PhotoLoader.legacy
       instead of PhotoLoader). I'll fix that.

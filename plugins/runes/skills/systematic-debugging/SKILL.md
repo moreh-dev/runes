@@ -111,7 +111,7 @@ You MUST complete each phase before proceeding to the next.
 
    **WHEN error is deep in call stack:**
 
-   See `root-cause-tracing.md` in this directory for the complete backward tracing technique.
+   See [root-cause-tracing.md](root-cause-tracing.md) for the complete backward tracing technique.
 
    **Quick version:**
    - Where does bad value originate?
@@ -229,7 +229,7 @@ If you catch yourself thinking:
 
 **ALL of these mean: STOP. Return to Phase 1.**
 
-**If 3+ fixes failed:** Question the architecture (see Phase 4.5)
+**If 3+ fixes failed:** Question the architecture (see Phase 4, step 5)
 
 ## your human partner's Signals You're Doing It Wrong
 
@@ -277,11 +277,13 @@ If systematic investigation reveals issue is truly environmental, timing-depende
 
 ## Supporting Techniques
 
-These techniques are part of systematic debugging and available in this directory:
+These techniques are part of systematic debugging:
 
-- **`root-cause-tracing.md`** - Trace bugs backward through call stack to find original trigger
-- **`defense-in-depth.md`** - Add validation at multiple layers after finding root cause
-- **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
+- **[root-cause-tracing.md](root-cause-tracing.md)** - Trace bugs backward through call stack to find original trigger
+- **[defense-in-depth.md](defense-in-depth.md)** - Add validation at multiple layers after finding root cause
+- **[condition-based-waiting.md](condition-based-waiting.md)** - Replace arbitrary timeouts with condition polling
+- **[condition-based-waiting-example.ts](condition-based-waiting-example.ts)** - Read and adapt: complete polling helpers (`waitForEvent`, `waitForEventCount`, `waitForEventMatch`). Reference code, not runnable as-is
+- **[find-polluter.sh](find-polluter.sh)** - Run (don't read) to find which test file creates an unwanted file or directory. Usage is in [root-cause-tracing.md](root-cause-tracing.md#finding-which-test-causes-pollution)
 
 **Related skills:**
 - **runes:test-driven-development** - For creating failing test case (Phase 4, Step 1)

@@ -8,7 +8,7 @@ Use this template when dispatching a code quality reviewer subagent.
 
 ```
 Agent tool (subagent_type: general-purpose):
-  Use template at requesting-code-review/code-reviewer.md
+  Use the code-reviewer.md template from runes:requesting-code-review
 
   DESCRIPTION: [task summary, from implementer's report]
   PLAN_OR_REQUIREMENTS: Task N from [plan-file]

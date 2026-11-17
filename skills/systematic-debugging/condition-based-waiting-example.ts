@@ -1,6 +1,6 @@
 // Complete implementation of condition-based waiting utilities
-// From: Lace test infrastructure improvements (2025-10-03)
-// Context: Fixed 15 flaky tests by replacing arbitrary timeouts
+// Reference code: read and adapt to your own event source. The imports and
+// types come from the codebase this was extracted from, so it does not run as-is.
 
 import type { ThreadManager } from '~/threads/thread-manager';
 import type { LaceEvent, LaceEventType } from '~/threads/types';
@@ -135,7 +135,7 @@ export function waitForEventMatch(
   });
 }
 
-// Usage example from actual debugging session:
+// Usage example:
 //
 // BEFORE (flaky):
 // ---------------
@@ -154,5 +154,3 @@ export function waitForEventMatch(
 // await messagePromise;
 // await waitForEventCount(threadManager, threadId, 'TOOL_RESULT', 2); // Wait for results
 // expect(toolResults.length).toBe(2); // Always succeeds
-//
-// Result: 60% pass rate → 100%, 40% faster execution

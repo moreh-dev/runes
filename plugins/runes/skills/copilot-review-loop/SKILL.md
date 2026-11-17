@@ -26,6 +26,8 @@ So every round begins by taking stock of the PR's Copilot state, and **requests 
 | Out of quota | Before requesting: the requester's premium-request quota is exhausted (see below) | **Halt and report** with the reset date — do NOT request |
 | Clean slate | none of the above | **Request** a fresh review, then wait |
 
+The work unit each round is **every unresolved Copilot thread**, not a single review's snapshot — that is what guarantees an auto-triggered review's comments get addressed instead of skipped.
+
 ## Copilot can fail to review — detect it, never read it as clean
 
 Copilot code review spends the **requester's** premium requests. When they run out, Copilot still posts a review: state `COMMENTED`, `commit_id` on the head, zero inline comments, and the body `Copilot was unable to review this pull request because the user who requested the review has reached their quota limit.` Judged by comment count and SHA alone, that is indistinguishable from `Confirmed clean` — so check for the failure first. This is a match on an error marker, not on a "clean" wording; the clean decision still never reads the body.
@@ -40,8 +42,6 @@ gh api /copilot_internal/user --jq '{quota: .quota_snapshots.premium_interaction
 `has_quota == false` with `overage_permitted == false` means a request will fail. Ignore `unlimited` and `percent_remaining` — they read `true` and `100.0` in the same snapshot that reports no quota. The endpoint is undocumented (Copilot's IDE plugins use it), so treat it as advisory: if the call fails or the field is missing, request anyway and rely on the post-landing body check. That check stays mandatory regardless — an auto-triggered review spends someone else's quota, which this endpoint cannot see.
 
 On either signal, halt and tell the user: the reason from the body, and the reset date if known. Do not re-request — the same requester gets the same failure.
-
-The work unit each round is **every unresolved Copilot thread**, not a single review's snapshot — that is what guarantees an auto-triggered review's comments get addressed instead of skipped.
 
 ## Trigger via reviewer, never via comment
 
@@ -69,7 +69,7 @@ No new event means nothing was requested; do not wait on it. These look like suc
 - `gh pr comment {pr} --body "/review"`
 - `gh pr comment {pr} --body "@copilot review"`
 
-If such a comment was already posted by mistake, leave it in place and surface it to the user for manual cleanup — do not auto-delete via the API. The delete call is irreversible and trivially misfires on the wrong comment ID (the endpoint deletes any issue/PR comment by numeric ID, with no scope guard for "stray Copilot triggers"). The reviewer surface is the only reliable trigger.
+If such a comment was already posted by mistake, leave it in place and surface it to the user for manual cleanup — do not auto-delete via the API. The delete endpoint irreversibly removes any issue/PR comment by numeric ID, so one wrong ID deletes someone else's comment.
 
 ## Assess, terminate, wait, then fetch
 
@@ -155,7 +155,7 @@ gh api graphql -f query='
         | {threadId: .id, comments: [.comments.nodes[] | {id: .databaseId, path, line, body}]}"
 ```
 
-On cap-elapsed with no review landed, halt and report — the base auto skill's "unrecognized error" path. The `threadId` feeds the base skill's GraphQL `resolveReviewThread`; the `contains("copilot")` matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`) identities. The `first:100` page size on threads and comments covers any realistic PR — it is a cap, not a guarantee of literally *all*; if a PR ever exceeds it, raise the page size or paginate rather than silently dropping threads.
+On cap-elapsed with no review landed, halt and report — the base auto skill's "unrecognized error" path. The `threadId` feeds the base auto skill's GraphQL `resolveReviewThread`; the `contains("copilot")` matcher catches both REST (`Copilot`) and GraphQL (`copilot-pull-request-reviewer[bot]`) identities. The `first:100` page size on threads and comments covers any realistic PR — it is a cap, not a guarantee of literally *all*; if a PR ever exceeds it, raise the page size or paginate rather than silently dropping threads.
 
 ## Reply format — SHA only when there is a SHA
 
@@ -186,7 +186,7 @@ After the base auto cycle finishes a round, loop back to **Assess** — never sk
 
 **The only termination condition** is the `Confirmed clean` row: the newest Copilot review's `commit_id` is the PR head SHA, that review posted zero inline comments, it is not a `Copilot was unable to review` notice, and no unresolved Copilot threads remain. (A failure notice or exhausted quota *halts* the loop with an error — that is not termination; the head is still unreviewed.) **Never the review body's prose** — its wording tracks review order, not content: a PR's first review says `generated no comments` and later ones say `generated no new comments`, so a string match terminates or loops on how many reviews came before.
 
-Anything short of all three re-requests. A round that only drained pre-existing threads has not cleared the current head, and neither has a review that predates the last push — so a zero-fix round still re-requests, letting Copilot confirm the unchanged state itself.
+Unless a halt applies, anything short of all four re-requests. A round that only drained pre-existing threads has not cleared the current head, and neither has a review that predates the last push — so a zero-fix round still re-requests, letting Copilot confirm the unchanged state itself.
 
 Round-N's contract is not "respond to round-N's comments" — it is "iterate until Copilot has seen the final state and confirms it has nothing to say". The pull toward "done" gets stronger each round; resist it. **Termination is observed Copilot state, not subjective completion.**
 

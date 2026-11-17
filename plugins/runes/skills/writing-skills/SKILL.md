@@ -323,9 +323,9 @@ digraph when_flowchart {
 - Linear instructions → Numbered lists
 - Labels without semantic meaning (step1, helper2)
 
-See [graphviz-conventions.dot](graphviz-conventions.dot) for graphviz style rules.
+For graphviz style rules (node shapes, edge labels, naming), read [graphviz-conventions.dot](graphviz-conventions.dot) as reference. It is a style guide written in DOT, not a script.
 
-**Visualizing for your human partner:** Use `render-graphs.js` in this directory to render a skill's flowcharts to SVG:
+**Visualizing for your human partner:** Run `render-graphs.js` (no need to read it) from this directory to render a skill's `dot` blocks to SVG files in `<skill>/diagrams/`. It needs Node.js and graphviz (`dot`):
 ```bash
 ./render-graphs.js ../some-skill           # Each diagram separately
 ./render-graphs.js ../some-skill --combine # All diagrams in one SVG

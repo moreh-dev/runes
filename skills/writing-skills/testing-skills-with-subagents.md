@@ -17,7 +17,6 @@
 - [Example: TDD Skill Bulletproofing](#example-tdd-skill-bulletproofing)
 - [Testing Checklist (TDD for Skills)](#testing-checklist-tdd-for-skills)
 - [Common Mistakes (Same as TDD)](#common-mistakes-same-as-tdd)
-- [Quick Reference (TDD Cycle)](#quick-reference-tdd-cycle)
 - [The Bottom Line](#the-bottom-line)
 - [Real-World Impact](#real-world-impact)
 
@@ -29,7 +28,7 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
-**REQUIRED BACKGROUND:** You MUST understand runes:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
+**REQUIRED BACKGROUND:** You MUST understand runes:test-driven-development before using this reference. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This reference provides skill-specific test formats (pressure scenarios, rationalization tables).
 
 **Complete worked example:** See [examples/CLAUDE_MD_TESTING.md](examples/CLAUDE_MD_TESTING.md) for a full test campaign testing CLAUDE.md documentation variants.
 
@@ -431,17 +430,6 @@ Agents resist single pressure, break under multiple.
 Tests pass once ≠ bulletproof.
 ✅ Fix: Continue REFACTOR cycle until no new rationalizations.
 
-## Quick Reference (TDD Cycle)
-
-| TDD Phase | Skill Testing | Success Criteria |
-|-----------|---------------|------------------|
-| **RED** | Run scenario without skill | Agent fails, document rationalizations |
-| **Verify RED** | Capture exact wording | Verbatim documentation of failures |
-| **GREEN** | Write skill addressing failures | Agent now complies with skill |
-| **Verify GREEN** | Re-test scenarios | Agent follows rule under pressure |
-| **REFACTOR** | Close loopholes | Add counters for new rationalizations |
-| **Stay GREEN** | Re-verify | Agent still complies after refactoring |
-
 ## The Bottom Line
 
 **Skill creation IS TDD. Same principles, same cycle, same benefits.**
@@ -452,7 +440,7 @@ RED-GREEN-REFACTOR for documentation works exactly like RED-GREEN-REFACTOR for c
 
 ## Real-World Impact
 
-From applying TDD to TDD skill itself (2025-10-03):
+Expect several iterations. Bulletproofing the TDD skill this way took:
 - 6 RED-GREEN-REFACTOR iterations to bulletproof
 - Baseline testing revealed 10+ unique rationalizations
 - Each REFACTOR closed specific loopholes

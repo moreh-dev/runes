@@ -9,11 +9,10 @@
 - [Implementation](#implementation)
 - [Common Mistakes](#common-mistakes)
 - [When Arbitrary Timeout IS Correct](#when-arbitrary-timeout-is-correct)
-- [Real-World Impact](#real-world-impact)
 
 ## Overview
 
-Flaky tests often guess at timing with arbitrary delays. This creates race conditions where tests pass on fast machines but fail under load or in CI.
+Flaky tests often guess at timing with arbitrary delays. This creates race conditions where tests pass on fast machines but fail under load or in CI. Waiting on the condition instead also makes suites faster, because tests stop waiting longer than they need to.
 
 **Core principle:** Wait for the actual condition you care about, not a guess about how long it takes.
 
@@ -90,7 +89,7 @@ async function waitFor<T>(
 }
 ```
 
-See `condition-based-waiting-example.ts` in this directory for complete implementation with domain-specific helpers (`waitForEvent`, `waitForEventCount`, `waitForEventMatch`) from actual debugging session.
+Read [condition-based-waiting-example.ts](condition-based-waiting-example.ts) for a complete implementation with domain-specific helpers (`waitForEvent`, `waitForEventCount`, `waitForEventMatch`). It is reference code to adapt to your own event source, not runnable as-is.
 
 ## Common Mistakes
 
@@ -116,11 +115,3 @@ await new Promise(r => setTimeout(r, 200));   // Then: wait for timed behavior
 1. First wait for triggering condition
 2. Based on known timing (not guessing)
 3. Comment explaining WHY
-
-## Real-World Impact
-
-From debugging session (2025-10-03):
-- Fixed 15 flaky tests across 3 files
-- Pass rate: 60% → 100%
-- Execution time: 40% faster
-- No more race conditions
