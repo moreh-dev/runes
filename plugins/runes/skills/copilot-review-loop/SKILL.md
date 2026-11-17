@@ -5,7 +5,7 @@ description: Use when the user asks to run, automate, or iterate on GitHub Copil
 
 # Copilot Review Loop
 
-**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-comment verify→fix→reply→resolve cycle, including all per-comment evaluation rules inherited from `receiving-code-review`. The delta below covers only Copilot-specific mechanics: assess, trigger, wait, reply format, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
+**REQUIRED SUB-SKILL:** Use `receiving-code-review-auto` for the per-thread verify→fix→push→reply→resolve cycle, including all per-comment evaluation rules inherited from `receiving-code-review`. The delta below covers only Copilot-specific mechanics: assess, trigger, wait, reply format, and termination. Each Copilot round is one full pass of the base auto cycle; the delta adds the surrounding loop.
 
 ## Assess before requesting — never blind-request
 
@@ -185,6 +185,8 @@ Each review feeds on the previous round's edits, so a sloppy patch becomes the n
 After the base auto cycle finishes a round, loop back to **Assess** — never skip it. Assess is the *only* place termination is decided, so the loop is always `Assess → (terminate | wait | process) → Assess`. A freshly-landed clean review leaves the thread fetch empty; the round does nothing and the next Assess terminates on it — don't bolt a second termination check onto the wait loop.
 
 **The only termination condition** is the `Confirmed clean` row: the newest Copilot review's `commit_id` is the PR head SHA, that review posted zero inline comments, it is not a `Copilot was unable to review` notice, and no unresolved Copilot threads remain. (A failure notice or exhausted quota *halts* the loop with an error — that is not termination; the head is still unreviewed.) **Never the review body's prose** — its wording tracks review order, not content: a PR's first review says `generated no comments` and later ones say `generated no new comments`, so a string match terminates or loops on how many reviews came before.
+
+**Escalated threads halt the loop.** If the base auto cycle escalated any Copilot thread this round, finish the round's push and replies, then halt and report. An escalated thread stays open on purpose, so `Confirmed clean` can never be reached until the user decides it.
 
 Unless a halt applies, anything short of all four re-requests. A round that only drained pre-existing threads has not cleared the current head, and neither has a review that predates the last push — so a zero-fix round still re-requests, letting Copilot confirm the unchanged state itself.
 
