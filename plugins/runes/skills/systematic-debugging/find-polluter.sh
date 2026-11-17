@@ -2,6 +2,11 @@
 # Bisection script to find which test creates unwanted files/state
 # Usage: ./find-polluter.sh <file_or_dir_to_check> <test_pattern>
 # Example: ./find-polluter.sh '.git' 'src/**/*.test.ts'
+#
+# Run from the project root. The pattern is matched against paths below the
+# current directory, with or without a leading "./". As in a shell glob,
+# "**/" matches zero or more directories.
+# Exit codes: 0 = no polluter, 1 = polluter found, 2 = nothing could be tested.
 
 set -e
 
@@ -12,15 +17,26 @@ if [ $# -ne 2 ]; then
 fi
 
 POLLUTION_CHECK="$1"
-TEST_PATTERN="$2"
+TEST_PATTERN="${2#./}"  # find prints paths as ./...; accept the pattern either way
 
 echo "🔍 Searching for test that creates: $POLLUTION_CHECK"
 echo "Test pattern: $TEST_PATTERN"
 echo ""
 
-# Get list of test files
-TEST_FILES=$(find . -path "$TEST_PATTERN" | sort)
-TOTAL=$(echo "$TEST_FILES" | wc -l | tr -d ' ')
+# Every test would be skipped, and the run would wrongly report "clean".
+if [ -e "$POLLUTION_CHECK" ]; then
+  echo "❌ $POLLUTION_CHECK already exists. Remove it, then run again." >&2
+  exit 2
+fi
+
+# In `find -path`, `*` also matches "/", so "**/" alone would require at least
+# one directory. Matching the pattern with "**/" removed as well covers zero.
+TEST_FILES=$(find . \( -path "./$TEST_PATTERN" -o -path "./${TEST_PATTERN//\*\*\//}" \) | sort -u)
+if [ -z "$TEST_FILES" ]; then
+  echo "❌ No test files match: ./$TEST_PATTERN" >&2
+  exit 2
+fi
+TOTAL=$(printf '%s\n' "$TEST_FILES" | wc -l | tr -d ' ')
 
 echo "Found $TOTAL test files"
 echo ""
@@ -28,14 +44,6 @@ echo ""
 COUNT=0
 for TEST_FILE in $TEST_FILES; do
   COUNT=$((COUNT + 1))
-
-  # Skip if pollution already exists
-  if [ -e "$POLLUTION_CHECK" ]; then
-    echo "⚠️  Pollution already exists before test $COUNT/$TOTAL"
-    echo "   Skipping: $TEST_FILE"
-    continue
-  fi
-
   echo "[$COUNT/$TOTAL] Testing: $TEST_FILE"
 
   # Run the test
