@@ -1,6 +1,6 @@
 ---
 name: commit-push-pr
-description: Use when the user asks to run /commit-push-pr, commit current changes, push the branch, and open a GitHub pull request from the current repository.
+description: Use when the user asks to run /commit-push-pr, or to commit current changes, push the branch, and open a GitHub pull request from the current repository.
 ---
 
 # Commit Push PR

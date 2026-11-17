@@ -1,6 +1,6 @@
 ---
 name: review-with-google-mind
-description: Apply Google's published engineering practices (from google/eng-practices — the Code Reviewer's Guide and the CL Author's Guide) as a lens to whatever the user is currently working on. Invoke only when the user explicitly asks via `/review-with-google-mind` or names this skill by name (e.g. "run review-with-google-mind on this PR", "review-with-google-mind this review comment", "would google approve this CL?", "apply review-with-google-mind to X"). Especially useful for evaluating a code review, a PR/CL description, change size, whether to push back on a reviewer, or a design tradeoff through Google's principles. Do NOT auto-trigger for general code-review or PR work — only when the user names the skill.
+description: Use only when the user explicitly invokes `/review-with-google-mind` or names this skill (e.g. "run review-with-google-mind on this PR", "would google approve this CL?", "apply review-with-google-mind to X") to view their current work through Google's eng-practices (Code Reviewer's Guide, CL Author's Guide) — a code review, a review comment, a PR/CL description, change size, whether to push back on a reviewer, or a design tradeoff. Do NOT trigger for general code-review or PR work unless the user names the skill.
 ---
 
 # Review with Google Mind
