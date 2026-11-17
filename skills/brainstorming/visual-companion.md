@@ -2,6 +2,20 @@
 
 Browser-based visual brainstorming companion for showing mockups, diagrams, and options.
 
+## Contents
+
+- [When to Use](#when-to-use)
+- [How It Works](#how-it-works)
+- [Starting a Session](#starting-a-session)
+- [The Loop](#the-loop)
+- [Writing Content Fragments](#writing-content-fragments)
+- [CSS Classes Available](#css-classes-available)
+- [Browser Events Format](#browser-events-format)
+- [Design Tips](#design-tips)
+- [File Naming](#file-naming)
+- [Cleaning Up](#cleaning-up)
+- [Reference](#reference)
+
 ## When to Use
 
 Decide per-question, not per-session. The test: **would the user understand this better by seeing it than reading it?**
