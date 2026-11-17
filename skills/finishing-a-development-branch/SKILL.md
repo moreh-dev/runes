@@ -172,6 +172,19 @@ Then: Cleanup worktree (Step 6), then force-delete branch:
 git branch -D <feature-branch>
 ```
 
+#### Detached HEAD Options
+
+The workspace is externally managed, so none of these options clean it up or delete a branch.
+
+- **1. Push as new branch and create a PR:** Name the branch after the work, in short kebab-case, and push the commit to it. Then create the PR as in Option 2, adding `--head <new-branch> --base <base-branch>`.
+
+  ```bash
+  git push origin HEAD:refs/heads/<new-branch>
+  ```
+
+- **2. Keep as-is:** Report the current commit and the workspace path.
+- **3. Discard:** Ask for the typed confirmation as in Option 4, listing the commits that will be abandoned. Then report them. There is no branch to delete and no worktree to remove.
+
 ### Step 6: Cleanup Workspace
 
 **Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
