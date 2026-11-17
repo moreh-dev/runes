@@ -1,6 +1,6 @@
 ---
 name: commit-push
-description: Use when the user asks to run /commit-push, commit current changes and push the branch to the remote without opening a pull request.
+description: Use when the user asks to run /commit-push, or to commit current changes and push the branch to the git remote without opening a pull request.
 ---
 
 # Commit Push
