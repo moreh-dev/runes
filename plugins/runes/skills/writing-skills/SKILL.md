@@ -159,11 +159,9 @@ Concrete results
 
 **Purpose:** Claude reads description to decide which skills to load for a given task. Make it answer: "Should I read this skill right now?"
 
-**Format:** Start with "Use when..." to focus on triggering conditions
+**CRITICAL: Description = When to Use and What It Covers, NOT How It Works**
 
-**CRITICAL: Description = When to Use, NOT What the Skill Does**
-
-The description should ONLY describe triggering conditions. Do NOT summarize the skill's process or workflow in the description.
+The description states the triggering conditions and, at most, the domain the skill covers. Do NOT summarize the skill's process or workflow in the description.
 
 **Why this matters:** Testing revealed that when a description summarizes the skill's workflow, Claude may follow the description instead of reading the full skill content. A description saying "code review between tasks" caused Claude to do ONE review, even though the skill's flowchart clearly showed TWO reviews (spec compliance then code quality).
 
@@ -180,10 +178,10 @@ description: Use when executing plans - dispatches subagent per task with code r
 # ❌ BAD: Too much process detail
 description: Use for TDD - write test first, watch it fail, write minimal code, refactor
 
-# ✅ GOOD: Just triggering conditions, no workflow summary
-description: Use when executing implementation plans with independent tasks in the current session
+# ✅ GOOD: When to use, no workflow summary
+description: Use when executing a written implementation plan with subagents available and mostly independent tasks
 
-# ✅ GOOD: Triggering conditions only
+# ✅ GOOD: When to use; the domain (features, bugfixes) is part of the trigger
 description: Use when implementing any feature or bugfix, before writing implementation code
 ```
 
@@ -451,7 +449,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 **GREEN Phase - Write Minimal Skill:**
 - [ ] Name: ≤64 chars, lowercase letters/numbers/hyphens only, no `anthropic`/`claude`, matches directory
 - [ ] YAML frontmatter with required `name` and `description` fields (description ≤1024 chars, no XML tags; see [spec](https://agentskills.io/specification))
-- [ ] Description starts with "Use when..." and includes specific triggers/symptoms
+- [ ] Description starts with "Use when...", includes specific triggers/symptoms, and doesn't summarize the workflow
 - [ ] Description written in third person
 - [ ] Keywords throughout for search (errors, symptoms, tools)
 - [ ] Clear overview with core principle
